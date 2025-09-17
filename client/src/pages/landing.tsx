@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Store, Package, Users, FileText, BarChart3, Settings } from "lucide-react";
+import { Store, Package, Users, FileText, BarChart3 } from "lucide-react";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { RegisterForm } from "@/components/auth/RegisterForm";
+
+type AuthMode = "login" | "register" | null;
 
 export default function Landing() {
-  const handleLogin = () => {
-    window.location.href = "/api/login";
-  };
+  const [authMode, setAuthMode] = useState<AuthMode>(null);
 
   const features = [
     {
@@ -47,34 +50,66 @@ export default function Landing() {
             Complete business management solution for building materials shop owners.
             Manage inventory, customers, and billing all in one place.
           </p>
-          <Button
-            onClick={handleLogin}
-            size="lg"
-            className="text-lg px-8 py-3 hover-lift"
-            data-testid="button-login"
-          >
-            Get Started
-          </Button>
+          <div className="space-x-4">
+            <Button
+              onClick={() => setAuthMode("login")}
+              size="lg"
+              className="text-lg px-8 py-3 hover-lift"
+              data-testid="button-login"
+            >
+              Sign In
+            </Button>
+            <Button
+              onClick={() => setAuthMode("register")}
+              variant="outline"
+              size="lg"
+              className="text-lg px-8 py-3 hover-lift"
+              data-testid="button-register"
+            >
+              Create Account
+            </Button>
+          </div>
         </div>
 
+        {/* Authentication Forms */}
+        {authMode === "login" && (
+          <div className="mb-16">
+            <LoginForm
+              onSuccess={() => setAuthMode(null)}
+              onSwitchToRegister={() => setAuthMode("register")}
+            />
+          </div>
+        )}
+
+        {authMode === "register" && (
+          <div className="mb-16">
+            <RegisterForm
+              onSuccess={() => setAuthMode(null)}
+              onSwitchToLogin={() => setAuthMode("login")}
+            />
+          </div>
+        )}
+
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {features.map((feature, index) => (
-            <Card key={index} className="hover-lift transition-all duration-200 border-border/50">
-              <CardHeader className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <feature.icon className="w-6 h-6 text-primary" />
-                </div>
-                <CardTitle className="text-lg">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center">
-                  {feature.description}
-                </CardDescription>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {authMode === null && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {features.map((feature, index) => (
+              <Card key={index} className="hover-lift transition-all duration-200 border-border/50">
+                <CardHeader className="text-center">
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <feature.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-center">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Benefits Section */}
         <Card className="max-w-4xl mx-auto">
@@ -161,18 +196,20 @@ export default function Landing() {
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-16 text-muted-foreground">
-          <p>Ready to streamline your business operations?</p>
-          <Button
-            onClick={handleLogin}
-            variant="outline"
-            size="lg"
-            className="mt-4 hover-lift"
-            data-testid="button-login-footer"
-          >
-            Start Managing Your Shop
-          </Button>
-        </div>
+        {authMode === null && (
+          <div className="text-center mt-16 text-muted-foreground">
+            <p>Ready to streamline your business operations?</p>
+            <Button
+              onClick={() => setAuthMode("login")}
+              variant="outline"
+              size="lg"
+              className="mt-4 hover-lift"
+              data-testid="button-login-footer"
+            >
+              Start Managing Your Shop
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
