@@ -25,10 +25,11 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (mandatory for Replit Auth)
+// User storage table (local authentication)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
+  email: varchar("email").unique().notNull(),
+  passwordHash: varchar("password_hash"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
@@ -224,9 +225,29 @@ export const insertBillItemSchema = createInsertSchema(billItems).omit({
   createdAt: true,
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  passwordHash: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address").transform(v => v.trim().toLowerCase()),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export const registerSchema = z.object({
+  email: z.string().email("Please enter a valid email address").transform(v => v.trim().toLowerCase()),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type PublicUser = Omit<User, 'passwordHash'>;
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Supplier = typeof suppliers.$inferSelect;
@@ -239,6 +260,9 @@ export type Bill = typeof bills.$inferSelect;
 export type InsertBill = z.infer<typeof insertBillSchema>;
 export type BillItem = typeof billItems.$inferSelect;
 export type InsertBillItem = z.infer<typeof insertBillItemSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type LoginRequest = z.infer<typeof loginSchema>;
+export type RegisterRequest = z.infer<typeof registerSchema>;
 
 // Extended types for API responses
 export type InventoryItemWithRelations = InventoryItem & {
