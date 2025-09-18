@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
+import MemoryStore from "memorystore";
 import { storage } from "./storage";
 import { loginSchema, registerSchema, type LoginRequest, type RegisterRequest, type PublicUser } from "@shared/schema";
 
@@ -16,13 +17,25 @@ const SALT_ROUNDS = 12;
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+
+  let sessionStore;
+  if (process.env.NODE_ENV === 'development') {
+    // Use memory store for local development
+    const MemStore = MemoryStore(session);
+    sessionStore = new MemStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
+  } else {
+    // Use PostgreSQL store for production
+    const pgStore = connectPg(session);
+    sessionStore = new pgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+      ttl: sessionTtl,
+      tableName: "sessions",
+    });
+  }
+
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -96,10 +109,10 @@ export async function setupAuth(app: Express) {
     try {
       const userData = registerSchema.parse(req.body);
       const user = await createUser(userData);
-      
+
       // Set session
       req.session.userId = user.id;
-      
+
       res.status(201).json({ user });
     } catch (error: any) {
       console.error("Registration error:", error);
@@ -112,14 +125,14 @@ export async function setupAuth(app: Express) {
     try {
       const credentials = loginSchema.parse(req.body);
       const user = await authenticateUser(credentials);
-      
+
       if (!user) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
-      
+
       // Set session
       req.session.userId = user.id;
-      
+
       res.json({ user });
     } catch (error: any) {
       console.error("Login error:", error);
