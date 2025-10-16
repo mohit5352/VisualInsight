@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Bell, Moon, Menu } from "lucide-react";
+import { Search, Bell, Moon, Sun, Menu } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 
 interface HeaderProps {
   title: string;
@@ -10,12 +11,13 @@ interface HeaderProps {
 
 export function Header({ title, action }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
       <div className="flex items-center space-x-4">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           className="lg:hidden p-2 rounded-md hover:bg-muted"
           data-testid="button-toggle-sidebar"
@@ -24,7 +26,7 @@ export function Header({ title, action }: HeaderProps) {
         </Button>
         <h2 className="text-2xl font-semibold text-foreground">{title}</h2>
       </div>
-      
+
       <div className="flex items-center space-x-4">
         {/* Search Bar */}
         <div className="relative hidden md:block">
@@ -38,13 +40,13 @@ export function Header({ title, action }: HeaderProps) {
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
         </div>
-        
+
         {/* Action Button */}
         {action}
-        
+
         {/* Notifications */}
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           className="relative p-2 rounded-md hover:bg-muted hover-lift transition-colors"
           data-testid="button-notifications"
@@ -54,15 +56,21 @@ export function Header({ title, action }: HeaderProps) {
             3
           </span>
         </Button>
-        
+
         {/* Theme Toggle */}
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           className="p-2 rounded-md hover:bg-muted hover-lift transition-colors"
           data-testid="button-theme-toggle"
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
         >
-          <Moon className="text-muted-foreground w-5 h-5" />
+          {theme === 'light' ? (
+            <Moon className="text-muted-foreground w-5 h-5" />
+          ) : (
+            <Sun className="text-muted-foreground w-5 h-5" />
+          )}
         </Button>
       </div>
     </header>

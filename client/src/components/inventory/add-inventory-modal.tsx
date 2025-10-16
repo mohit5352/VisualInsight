@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { insertInventoryItemSchema, type InsertInventoryItem, type Category, type Supplier } from "@shared/schema";
+import { z } from "zod";
 import {
   Dialog,
   DialogContent,
@@ -52,21 +53,22 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
 
   const form = useForm<InsertInventoryItem>({
     resolver: zodResolver(insertInventoryItemSchema.extend({
-      quantity: insertInventoryItemSchema.shape.quantity.min(0, "Quantity must be non-negative"),
-      unitPrice: insertInventoryItemSchema.shape.unitPrice.refine(
-        (val) => parseFloat(val) >= 0, 
+      quantity: z.number().int().min(0, "Quantity must be non-negative"),
+      unitPrice: z.string().refine(
+        (val) => parseFloat(val) >= 0,
         "Price must be non-negative"
       ),
     })),
     defaultValues: {
       name: "",
       description: "",
-      categoryId: "",
-      supplierId: "",
+      // categoryId: "",
+      // supplierId: "",
       quantity: 0,
       minStockLevel: 10,
       unitPrice: "0.00",
       sku: "",
+      userId: "", // This will be set server-side
     },
   });
 
@@ -106,7 +108,9 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
   });
 
   const onSubmit = (data: InsertInventoryItem) => {
+    console.log("onSubmit is called", data);
     mutation.mutate(data);
+    console.log("onSubmit is done");
   };
 
   return (
@@ -116,7 +120,16 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
           <DialogTitle>Add New Inventory Item</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(
+                            (data) => {
+                              console.log("✅ handleSubmit passed, calling onSubmit");
+                              onSubmit(data);
+                            },
+                            (errors) => {
+                              console.log("❌ Validation errors", errors);
+                            }
+                          )} 
+                className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -124,9 +137,9 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
                 <FormItem>
                   <FormLabel>Item Name</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter item name" 
-                      {...field} 
+                    <Input
+                      placeholder="Enter item name"
+                      {...field}
                       data-testid="input-item-name"
                     />
                   </FormControl>
@@ -142,9 +155,10 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Enter item description" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Enter item description"
+                      {...field}
+                      value={field.value || ''}
                       data-testid="textarea-description"
                     />
                   </FormControl>
@@ -159,7 +173,7 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value ?? ''}>
                     <FormControl>
                       <SelectTrigger data-testid="select-category">
                         <SelectValue placeholder="Select category" />
@@ -184,7 +198,7 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Supplier</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value ?? ''}>
                     <FormControl>
                       <SelectTrigger data-testid="select-supplier">
                         <SelectValue placeholder="Select supplier" />
@@ -211,10 +225,11 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
                   <FormItem>
                     <FormLabel>Quantity</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
+                      <Input
+                        type="number"
+                        placeholder="0"
                         {...field}
+                        value={field.value || 0}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                         data-testid="input-quantity"
                       />
@@ -231,11 +246,12 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
                   <FormItem>
                     <FormLabel>Unit Price ($)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        placeholder="0.00" 
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
                         {...field}
+                        value={field.value || '0.00'}
                         data-testid="input-unit-price"
                       />
                     </FormControl>
@@ -252,10 +268,11 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
                 <FormItem>
                   <FormLabel>Minimum Stock Level</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="10" 
+                    <Input
+                      type="number"
+                      placeholder="10"
                       {...field}
+                      value={field.value || 10}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 10)}
                       data-testid="input-min-stock"
                     />
@@ -272,9 +289,10 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
                 <FormItem>
                   <FormLabel>SKU (Optional)</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Item SKU" 
-                      {...field} 
+                    <Input
+                      placeholder="Item SKU"
+                      {...field}
+                      value={field.value ?? ''}
                       data-testid="input-sku"
                     />
                   </FormControl>
@@ -284,16 +302,16 @@ export function AddInventoryModal({ isOpen, onClose }: AddInventoryModalProps) {
             />
 
             <div className="flex justify-end space-x-3 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onClose}
                 data-testid="button-cancel"
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={mutation.isPending}
                 data-testid="button-add-item"
               >
