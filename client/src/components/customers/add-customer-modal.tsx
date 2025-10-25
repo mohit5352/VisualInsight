@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -48,6 +49,7 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
       state: "",
       zipCode: "",
       taxId: "",
+      userId: "", // This will be set server-side
     },
   });
 
@@ -87,7 +89,19 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
   });
 
   const onSubmit = (data: InsertCustomer) => {
-    mutation.mutate(data);
+    // Convert null values to empty strings for API compatibility
+    const cleanedData = {
+      ...data,
+      email: data.email || "",
+      phone: data.phone || "",
+      address: data.address || "",
+      city: data.city || "",
+      state: data.state || "",
+      zipCode: data.zipCode || "",
+      taxId: data.taxId || "",
+    };
+    console.log("Form data:", cleanedData, "Form values:", form.getValues());
+    mutation.mutate(cleanedData);
   };
 
   return (
@@ -95,6 +109,9 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
       <DialogContent className="max-w-2xl animate-fade-in">
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
+          <DialogDescription>
+            Add a new customer to your system. Fill in the details below.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -124,12 +141,13 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="email"
-                        placeholder="customer@example.com" 
-                        {...field} 
-                        data-testid="input-customer-email"
-                      />
+                    <Input 
+                      type="email"
+                      placeholder="customer@example.com" 
+                      {...field}
+                      value={field.value || ""}
+                      data-testid="input-customer-email"
+                    />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -143,11 +161,12 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Phone number" 
-                        {...field} 
-                        data-testid="input-customer-phone"
-                      />
+                    <Input 
+                      placeholder="Phone number" 
+                      {...field}
+                      value={field.value || ""}
+                      data-testid="input-customer-phone"
+                    />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -164,7 +183,8 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
                   <FormControl>
                     <Textarea 
                       placeholder="Street address" 
-                      {...field} 
+                      {...field}
+                      value={field.value || ""}
                       data-testid="textarea-customer-address"
                     />
                   </FormControl>
@@ -183,7 +203,8 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
                     <FormControl>
                       <Input 
                         placeholder="City" 
-                        {...field} 
+                        {...field}
+                        value={field.value || ""}
                         data-testid="input-customer-city"
                       />
                     </FormControl>
@@ -201,7 +222,8 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
                     <FormControl>
                       <Input 
                         placeholder="State" 
-                        {...field} 
+                        {...field}
+                        value={field.value || ""}
                         data-testid="input-customer-state"
                       />
                     </FormControl>
@@ -219,7 +241,8 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
                     <FormControl>
                       <Input 
                         placeholder="ZIP" 
-                        {...field} 
+                        {...field}
+                        value={field.value || ""}
                         data-testid="input-customer-zip"
                       />
                     </FormControl>
@@ -238,7 +261,8 @@ export function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
                   <FormControl>
                     <Input 
                       placeholder="Tax identification number" 
-                      {...field} 
+                      {...field}
+                      value={field.value || ""}
                       data-testid="input-customer-tax-id"
                     />
                   </FormControl>

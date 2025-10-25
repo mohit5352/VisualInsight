@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -115,14 +116,19 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
     
     if (field === 'inventoryItemId') {
       const inventoryItem = inventoryItems?.find(inv => inv.id === value);
+      item.inventoryItemId = value.toString();
       item.inventoryItem = inventoryItem;
       item.unitPrice = inventoryItem?.unitPrice || "0.00";
-    } else {
-      item[field] = value as any;
+    } else if (field === 'quantity') {
+      item.quantity = typeof value === 'number' ? value : parseInt(value.toString() || "0");
+    } else if (field === 'unitPrice') {
+      item.unitPrice = value.toString();
+    } else if (field === 'total') {
+      item.total = value.toString();
     }
     
     if (field === 'quantity' || field === 'unitPrice') {
-      const quantity = typeof item.quantity === 'number' ? item.quantity : parseInt(item.quantity?.toString() || "0");
+      const quantity = typeof item.quantity === 'number' ? item.quantity : parseInt(String(item.quantity) || "0");
       const unitPrice = parseFloat(item.unitPrice || "0");
       item.total = (quantity * unitPrice).toFixed(2);
     }
@@ -149,18 +155,18 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
       
       const billData = {
         customerId: data.customerId,
+        userId: "", // This will be set server-side from session
         subtotal: totals.subtotal,
         taxRate: data.taxRate,
         taxAmount: totals.taxAmount,
         total: totals.total,
-        notes: data.notes,
+        notes: data.notes || "",
         status: "pending",
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       };
 
       const items = billItems.map(item => ({
         inventoryItemId: item.inventoryItemId,
-        quantity: typeof item.quantity === 'number' ? item.quantity : parseInt(item.quantity?.toString() || "0"),
+        quantity: typeof item.quantity === 'number' ? item.quantity : parseInt(String(item.quantity) || "0"),
         unitPrice: item.unitPrice,
         total: item.total,
       }));
@@ -205,6 +211,9 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
   });
 
   const onSubmit = (data: BillFormData) => {
+    console.log("Bill form data:", data);
+    console.log("Bill items:", billItems);
+    
     if (billItems.length === 0) {
       toast({
         title: "Error",
@@ -214,16 +223,19 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
       return;
     }
 
-    const hasInvalidItems = billItems.some(item => 
-      !item.inventoryItemId || 
-      !item.quantity || 
-      item.quantity <= 0
-    );
+    const hasInvalidItems = billItems.some(item => {
+      console.log("Checking item:", item);
+      return !item.inventoryItemId || 
+             !item.quantity || 
+             item.quantity <= 0 ||
+             !item.unitPrice ||
+             parseFloat(item.unitPrice) <= 0;
+    });
 
     if (hasInvalidItems) {
       toast({
         title: "Error",
-        description: "Please ensure all items have valid quantities",
+        description: "Please ensure all items have valid inventory selection, quantities, and prices",
         variant: "destructive",
       });
       return;
@@ -239,6 +251,9 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto animate-fade-in">
         <DialogHeader>
           <DialogTitle>Generate Invoice</DialogTitle>
+          <DialogDescription>
+            Create a new invoice for your customer. Select items and set quantities.
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>
@@ -331,7 +346,7 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
                           <TableRow key={index} data-testid={`row-bill-item-${index}`}>
                             <TableCell>
                               <Select
-                                value={item.inventoryItemId}
+                                value={item.inventoryItemId || ""}
                                 onValueChange={(value) => updateBillItem(index, 'inventoryItemId', value)}
                               >
                                 <SelectTrigger data-testid={`select-item-${index}`}>
@@ -349,7 +364,7 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
                             <TableCell>
                               <Input
                                 type="number"
-                                value={item.quantity}
+                                value={item.quantity || ""}
                                 onChange={(e) => updateBillItem(index, 'quantity', parseInt(e.target.value) || 0)}
                                 min="1"
                                 max={item.inventoryItem?.quantity || 999}
@@ -360,7 +375,7 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
                               <Input
                                 type="number"
                                 step="0.01"
-                                value={item.unitPrice}
+                                value={item.unitPrice || ""}
                                 onChange={(e) => updateBillItem(index, 'unitPrice', e.target.value)}
                                 data-testid={`input-price-${index}`}
                               />

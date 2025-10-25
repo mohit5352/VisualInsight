@@ -1,0 +1,1481 @@
+openapi: 3.0.3
+info:
+  title: VisualInsight API
+  description: |
+    Complete business management solution for building materials shop owners.
+    
+    This RESTful API provides comprehensive functionality for:
+    - Inventory management with categories and suppliers
+    - Customer relationship management
+    - Professional billing and invoicing
+    - Real-time business analytics and reporting
+    
+    **Authentication**: Session-based with HTTP-only cookies
+    **Base URL**: http://localhost:5000/api
+  version: 1.0.0
+  contact:
+    name: VisualInsight Support
+    email: support@visualinsight.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+  - url: https://api.visualinsight.com/api
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Categories
+    description: Inventory category management
+  - name: Suppliers
+    description: Supplier management
+  - name: Inventory
+    description: Inventory item management
+  - name: Customers
+    description: Customer management
+  - name: Bills
+    description: Billing and invoice management
+  - name: Dashboard
+    description: Business analytics and reporting
+
+paths:
+  /register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: password123
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Doe
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user and create session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: Session cookie
+              schema:
+                type: string
+                example: connect.sid=s%3A...
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Destroy user session
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+
+  /auth/user:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user
+      description: Get current authenticated user information
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: User information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: List categories
+      description: Get all categories for the authenticated user
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+    post:
+      tags:
+        - Categories
+      summary: Create category
+      description: Create a new category
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: Building Materials
+                description:
+                  type: string
+                  example: Construction materials and supplies
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /categories/{id}:
+    put:
+      tags:
+        - Categories
+      summary: Update category
+      description: Update an existing category
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Building Materials
+                description:
+                  type: string
+                  example: Updated description
+      responses:
+        '200':
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Categories
+      summary: Delete category
+      description: Delete a category
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Category deleted successfully
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /suppliers:
+    get:
+      tags:
+        - Suppliers
+      summary: List suppliers
+      description: Get all suppliers for the authenticated user
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Suppliers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Supplier'
+    post:
+      tags:
+        - Suppliers
+      summary: Create supplier
+      description: Create a new supplier
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: ABC Construction Supply
+                email:
+                  type: string
+                  format: email
+                  example: contact@abc.com
+                phone:
+                  type: string
+                  example: +1-555-0123
+                address:
+                  type: string
+                  example: 123 Supply Street, City, State
+      responses:
+        '201':
+          description: Supplier created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /suppliers/{id}:
+    put:
+      tags:
+        - Suppliers
+      summary: Update supplier
+      description: Update an existing supplier
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Supplier updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+        '404':
+          description: Supplier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Suppliers
+      summary: Delete supplier
+      description: Delete a supplier
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Supplier deleted successfully
+        '404':
+          description: Supplier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /inventory:
+    get:
+      tags:
+        - Inventory
+      summary: List inventory items
+      description: Get all inventory items with category and supplier relations
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Inventory items retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryItem'
+    post:
+      tags:
+        - Inventory
+      summary: Create inventory item
+      description: Create a new inventory item
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - quantity
+                - unitPrice
+              properties:
+                name:
+                  type: string
+                  example: Concrete Blocks
+                description:
+                  type: string
+                  example: Standard building blocks
+                categoryId:
+                  type: string
+                  format: uuid
+                supplierId:
+                  type: string
+                  format: uuid
+                quantity:
+                  type: integer
+                  minimum: 0
+                  example: 100
+                minStockLevel:
+                  type: integer
+                  minimum: 0
+                  example: 20
+                unitPrice:
+                  type: string
+                  pattern: '^\d+\.\d{2}$'
+                  example: "2.50"
+                sku:
+                  type: string
+                  example: CB-001
+      responses:
+        '201':
+          description: Inventory item created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /inventory/{id}:
+    get:
+      tags:
+        - Inventory
+      summary: Get inventory item
+      description: Get a specific inventory item with relations
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Inventory item retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '404':
+          description: Inventory item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Inventory
+      summary: Update inventory item
+      description: Update an existing inventory item
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                categoryId:
+                  type: string
+                  format: uuid
+                supplierId:
+                  type: string
+                  format: uuid
+                quantity:
+                  type: integer
+                  minimum: 0
+                minStockLevel:
+                  type: integer
+                  minimum: 0
+                unitPrice:
+                  type: string
+                  pattern: '^\d+\.\d{2}$'
+                sku:
+                  type: string
+      responses:
+        '200':
+          description: Inventory item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '404':
+          description: Inventory item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Inventory
+      summary: Delete inventory item
+      description: Delete an inventory item
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Inventory item deleted successfully
+        '404':
+          description: Inventory item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /inventory/{id}/quantity:
+    put:
+      tags:
+        - Inventory
+      summary: Update inventory quantity
+      description: Update only the quantity of an inventory item
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 0
+                  example: 150
+      responses:
+        '200':
+          description: Inventory quantity updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '400':
+          description: Invalid quantity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Inventory item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: List customers
+      description: Get all customers for the authenticated user
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: withStats
+          in: query
+          description: Include customer statistics
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Customers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: '#/components/schemas/Customer'
+                    - $ref: '#/components/schemas/CustomerWithStats'
+    post:
+      tags:
+        - Customers
+      summary: Create customer
+      description: Create a new customer
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: John Smith Construction
+                email:
+                  type: string
+                  format: email
+                  example: john@smithconstruction.com
+                phone:
+                  type: string
+                  example: +1-555-0456
+                address:
+                  type: string
+                  example: 456 Builder Ave
+                city:
+                  type: string
+                  example: Construction City
+                state:
+                  type: string
+                  example: CA
+                zipCode:
+                  type: string
+                  example: "90210"
+                taxId:
+                  type: string
+                  example: TAX123456789
+      responses:
+        '201':
+          description: Customer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /customers/{id}:
+    get:
+      tags:
+        - Customers
+      summary: Get customer
+      description: Get a specific customer
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Customer retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Customers
+      summary: Update customer
+      description: Update an existing customer
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                address:
+                  type: string
+                city:
+                  type: string
+                state:
+                  type: string
+                zipCode:
+                  type: string
+                taxId:
+                  type: string
+      responses:
+        '200':
+          description: Customer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Customers
+      summary: Delete customer
+      description: Delete a customer
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Customer deleted successfully
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills:
+    get:
+      tags:
+        - Bills
+      summary: List bills
+      description: Get all bills with customer and item relations
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Bills retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bill'
+    post:
+      tags:
+        - Bills
+      summary: Create bill
+      description: Create a new bill with items
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bill
+                - items
+              properties:
+                bill:
+                  type: object
+                  required:
+                    - customerId
+                    - subtotal
+                    - total
+                    - userId
+                  properties:
+                    customerId:
+                      type: string
+                      format: uuid
+                    subtotal:
+                      type: string
+                      pattern: '^\d+\.\d{2}$'
+                      example: "100.00"
+                    taxRate:
+                      type: string
+                      pattern: '^\d+\.\d{2}$'
+                      example: "8.00"
+                    taxAmount:
+                      type: string
+                      pattern: '^\d+\.\d{2}$'
+                      example: "8.00"
+                    total:
+                      type: string
+                      pattern: '^\d+\.\d{2}$'
+                      example: "108.00"
+                    notes:
+                      type: string
+                    status:
+                      type: string
+                      enum: [pending, paid, cancelled]
+                      default: pending
+                    userId:
+                      type: string
+                      format: uuid
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - inventoryItemId
+                      - quantity
+                      - unitPrice
+                      - total
+                    properties:
+                      inventoryItemId:
+                        type: string
+                        format: uuid
+                      quantity:
+                        type: integer
+                        minimum: 1
+                      unitPrice:
+                        type: string
+                        pattern: '^\d+\.\d{2}$'
+                      total:
+                        type: string
+                        pattern: '^\d+\.\d{2}$'
+      responses:
+        '201':
+          description: Bill created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+        '400':
+          description: Invalid bill data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/{id}:
+    get:
+      tags:
+        - Bills
+      summary: Get bill
+      description: Get a specific bill with full details
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Bill retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+        '404':
+          description: Bill not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Bills
+      summary: Delete bill
+      description: Delete a bill and restore inventory quantities
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Bill deleted successfully
+        '404':
+          description: Bill not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/{id}/status:
+    put:
+      tags:
+        - Bills
+      summary: Update bill status
+      description: Update the status of a bill
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [pending, paid, cancelled]
+                  example: paid
+      responses:
+        '200':
+          description: Bill status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+        '400':
+          description: Invalid status value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Bill not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /dashboard/stats:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard statistics
+      description: Get business statistics for the dashboard
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Dashboard statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+
+  /dashboard/recent-transactions:
+    get:
+      tags:
+        - Dashboard
+      summary: Get recent transactions
+      description: Get recent bill transactions
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Number of transactions to return
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Recent transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bill'
+
+  /dashboard/low-stock:
+    get:
+      tags:
+        - Dashboard
+      summary: Get low stock items
+      description: Get inventory items with low stock levels
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Low stock items retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryItem'
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+      description: Session-based authentication using HTTP-only cookies
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: d7bd4746-f5ba-4dca-832b-36eaf441502c
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        profileImageUrl:
+          type: string
+          nullable: true
+          example: null
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-09-18T09:26:19.858Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-09-18T09:26:19.858Z"
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 02f6e34a-c1de-4cfc-8353-577def720c54
+        name:
+          type: string
+          example: Building Materials
+        description:
+          type: string
+          nullable: true
+          example: Construction materials and supplies
+        userId:
+          type: string
+          format: uuid
+          example: d7bd4746-f5ba-4dca-832b-36eaf441502c
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:07:23.347Z"
+
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 7ce8759a-bc3f-4559-baf4-fe41f1fd186f
+        name:
+          type: string
+          example: ABC Construction Supply
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: contact@abc.com
+        phone:
+          type: string
+          nullable: true
+          example: +1-555-0123
+        address:
+          type: string
+          nullable: true
+          example: 123 Supply Street, City, State
+        userId:
+          type: string
+          format: uuid
+          example: d7bd4746-f5ba-4dca-832b-36eaf441502c
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:07:49.402Z"
+
+    InventoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: ca275b3d-6073-4e2f-b988-0933bbd12ada
+        name:
+          type: string
+          example: Concrete Blocks
+        description:
+          type: string
+          nullable: true
+          example: Standard building blocks
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        supplierId:
+          type: string
+          format: uuid
+          nullable: true
+        quantity:
+          type: integer
+          minimum: 0
+          example: 100
+        minStockLevel:
+          type: integer
+          minimum: 0
+          example: 20
+        unitPrice:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "2.50"
+        sku:
+          type: string
+          nullable: true
+          example: CB-001
+        userId:
+          type: string
+          format: uuid
+          example: d7bd4746-f5ba-4dca-832b-36eaf441502c
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:09:46.674Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:09:46.674Z"
+        category:
+          $ref: '#/components/schemas/Category'
+        supplier:
+          $ref: '#/components/schemas/Supplier'
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: c8eda451-8965-4667-8f39-fb423f6d314c
+        name:
+          type: string
+          example: John Smith Construction
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: john@smithconstruction.com
+        phone:
+          type: string
+          nullable: true
+          example: +1-555-0456
+        address:
+          type: string
+          nullable: true
+          example: 456 Builder Ave
+        city:
+          type: string
+          nullable: true
+          example: Construction City
+        state:
+          type: string
+          nullable: true
+          example: CA
+        zipCode:
+          type: string
+          nullable: true
+          example: "90210"
+        taxId:
+          type: string
+          nullable: true
+          example: TAX123456789
+        userId:
+          type: string
+          format: uuid
+          example: d7bd4746-f5ba-4dca-832b-36eaf441502c
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:08:31.015Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:08:31.015Z"
+
+    CustomerWithStats:
+      allOf:
+        - $ref: '#/components/schemas/Customer'
+        - type: object
+          properties:
+            totalBills:
+              type: integer
+              example: 5
+            totalAmount:
+              type: string
+              pattern: '^\d+\.\d{2}$'
+              example: "1250.00"
+            lastOrderDate:
+              type: string
+              format: date-time
+              nullable: true
+              example: "2025-10-15T14:30:00.000Z"
+
+    BillItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: ac1c8a28-93b1-44f8-937e-74c3a6545798
+        billId:
+          type: string
+          format: uuid
+          example: 97bcea65-1b1c-43d2-ab02-c0affe122ef7
+        inventoryItemId:
+          type: string
+          format: uuid
+          example: ca275b3d-6073-4e2f-b988-0933bbd12ada
+        quantity:
+          type: integer
+          minimum: 1
+          example: 10
+        unitPrice:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "10.00"
+        total:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "100.00"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:10:09.166Z"
+        inventoryItem:
+          $ref: '#/components/schemas/InventoryItem'
+
+    Bill:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 97bcea65-1b1c-43d2-ab02-c0affe122ef7
+        billNumber:
+          type: string
+          example: INV-000001
+        customerId:
+          type: string
+          format: uuid
+          example: c8eda451-8965-4667-8f39-fb423f6d314c
+        userId:
+          type: string
+          format: uuid
+          example: d7bd4746-f5ba-4dca-832b-36eaf441502c
+        subtotal:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "100.00"
+        taxRate:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "8.00"
+        taxAmount:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "8.00"
+        total:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "108.00"
+        status:
+          type: string
+          enum: [pending, paid, cancelled]
+          example: pending
+        notes:
+          type: string
+          nullable: true
+          example: Rush order
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        paidDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2025-10-18T10:10:29.844Z"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:10:08.799Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-10-18T10:10:29.844Z"
+        customer:
+          $ref: '#/components/schemas/Customer'
+        billItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillItem'
+
+    DashboardStats:
+      type: object
+      properties:
+        totalInventory:
+          type: integer
+          example: 2
+        lowStockItems:
+          type: integer
+          example: 0
+        totalCustomers:
+          type: integer
+          example: 4
+        monthlyRevenue:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "0"
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Error description
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                example: validation_error
+              path:
+                type: array
+                items:
+                  type: string
+                example: ["fieldName"]
+              message:
+                type: string
+                example: Detailed error message
+
+security:
+  - sessionAuth: []
