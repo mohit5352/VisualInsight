@@ -19,7 +19,11 @@ import { Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react";
 import type { CustomerWithStats } from "@shared/schema";
 import { format } from "date-fns";
 
-export function CustomerTable() {
+interface CustomerTableProps {
+  onEditCustomer?: (customerId: string) => void;
+}
+
+export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -195,9 +199,10 @@ export function CustomerTable() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-2">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
+                          onClick={() => onEditCustomer?.(customer.id)}
                           data-testid={`button-edit-customer-${customer.id}`}
                         >
                           <Edit className="w-4 h-4" />

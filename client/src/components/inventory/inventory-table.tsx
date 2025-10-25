@@ -18,7 +18,11 @@ import {
 import { Search, Package, Edit, Trash2, AlertTriangle } from "lucide-react";
 import type { InventoryItemWithRelations } from "@shared/schema";
 
-export function InventoryTable() {
+interface InventoryTableProps {
+  onEditItem?: (itemId: string) => void;
+}
+
+export function InventoryTable({ onEditItem }: InventoryTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -185,9 +189,10 @@ export function InventoryTable() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-2">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
+                          onClick={() => onEditItem?.(item.id)}
                           data-testid={`button-edit-${item.id}`}
                         >
                           <Edit className="w-4 h-4" />

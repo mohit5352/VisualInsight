@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { InventoryTable } from "@/components/inventory/inventory-table";
 import { AddInventoryModal } from "@/components/inventory/add-inventory-modal";
+import { EditInventoryModal } from "@/components/inventory/edit-inventory-modal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -12,6 +13,7 @@ export default function Inventory() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -57,12 +59,17 @@ export default function Inventory() {
           }
         />
         <div className="flex-1 overflow-auto p-6 animate-fade-in">
-          <InventoryTable />
+          <InventoryTable onEditItem={setEditingItemId} />
         </div>
       </main>
-      <AddInventoryModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
+      <AddInventoryModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
+      <EditInventoryModal
+        isOpen={!!editingItemId}
+        onClose={() => setEditingItemId(null)}
+        itemId={editingItemId}
       />
     </div>
   );

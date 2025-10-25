@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { CustomerTable } from "@/components/customers/customer-table";
 import { AddCustomerModal } from "@/components/customers/add-customer-modal";
+import { EditCustomerModal } from "@/components/customers/edit-customer-modal";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 
@@ -12,6 +13,7 @@ export default function Customers() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -57,12 +59,17 @@ export default function Customers() {
           }
         />
         <div className="flex-1 overflow-auto p-6 animate-fade-in">
-          <CustomerTable />
+          <CustomerTable onEditCustomer={setEditingCustomerId} />
         </div>
       </main>
-      <AddCustomerModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
+      <AddCustomerModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
+      <EditCustomerModal
+        isOpen={!!editingCustomerId}
+        onClose={() => setEditingCustomerId(null)}
+        customerId={editingCustomerId}
       />
     </div>
   );
