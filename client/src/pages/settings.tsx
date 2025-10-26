@@ -32,8 +32,39 @@ export default function Settings() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: data.message || "You have been logged out successfully",
+        });
+        // Redirect to landing page after successful logout
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 500);
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to logout. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
