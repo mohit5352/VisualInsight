@@ -20,6 +20,14 @@ The VisualInsight API provides comprehensive business management functionality f
   - [Suppliers Endpoints](#suppliers-endpoints)
   - [Inventory Endpoints](#inventory-endpoints)
   - [Customers Endpoints](#customers-endpoints)
+    - [Get Customer Purchase History](#get-customer-purchase-history)
+    - [Create Bill for Customer](#create-bill-for-customer)
+  - [Purchase History Endpoints](#purchase-history-endpoints-date-wise)
+    - [Get Daily Purchase History](#get-daily-purchase-history)
+    - [Get Date Range Purchase History](#get-date-range-purchase-history)
+  - [Payment Endpoints](#payment-endpoints)
+    - [Get Bill Payments](#get-bill-payments)
+    - [Record Payment](#record-payment)
   - [Bills Endpoints](#bills-endpoints)
   - [Dashboard Endpoints](#dashboard-endpoints)
 - [Examples](#examples)
@@ -180,14 +188,31 @@ The API uses session-based authentication with HTTP-only cookies.
   "taxRate": "string (decimal, default: 0.00)",
   "taxAmount": "string (decimal, default: 0.00)",
   "total": "string (decimal)",
-  "status": "string (pending|paid|cancelled, default: pending)",
+  "status": "string (pending|partial|paid|cancelled, default: pending)",
   "notes": "string (optional)",
   "dueDate": "string (ISO 8601, optional)",
   "paidDate": "string (ISO 8601, optional)",
   "createdAt": "string (ISO 8601)",
   "updatedAt": "string (ISO 8601)",
   "customer": "Customer (populated in responses)",
-  "billItems": "BillItem[] (populated in responses)"
+  "billItems": "BillItem[] (populated in responses)",
+  "payments": "Payment[] (optional, populated in responses)",
+  "paidAmount": "string (decimal, optional, calculated)",
+  "outstandingAmount": "string (decimal, optional, calculated)"
+}
+```
+
+### Payment
+```json
+{
+  "id": "string (UUID)",
+  "billId": "string (UUID)",
+  "amount": "string (decimal, required)",
+  "paymentDate": "string (ISO 8601)",
+  "paymentMethod": "string (optional, cash|card|bank_transfer|cheque|upi|other)",
+  "notes": "string (optional)",
+  "userId": "string (UUID)",
+  "createdAt": "string (ISO 8601)"
 }
 ```
 
@@ -943,6 +968,362 @@ Delete a customer.
 **Error Responses:**
 - `404 Not Found`: Customer not found
 
+---
+
+#### Get Customer Purchase History
+**GET** `/customers/{id}/purchase-history`
+
+Get purchase history (bills) for a specific customer with optional date filtering.
+
+**Headers:** Requires session cookie
+
+**Path Parameters:**
+- `id`: Customer UUID
+
+**Query Parameters:**
+- `startDate` (optional): Start date for filtering (ISO 8601 format)
+- `endDate` (optional): End date for filtering (ISO 8601 format)
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "id": "string (UUID)",
+    "billNumber": "string",
+    "customerId": "string (UUID)",
+    "userId": "string (UUID)",
+    "subtotal": "string (decimal)",
+    "taxRate": "string (decimal)",
+    "taxAmount": "string (decimal)",
+    "total": "string (decimal)",
+    "status": "string",
+    "notes": "string",
+    "dueDate": "string (ISO 8601)",
+    "paidDate": "string (ISO 8601)",
+    "createdAt": "string (ISO 8601)",
+    "updatedAt": "string (ISO 8601)",
+    "customer": {
+      "id": "string (UUID)",
+      "name": "string",
+      "email": "string",
+      "phone": "string"
+    },
+    "billItems": [
+      {
+        "id": "string (UUID)",
+        "billId": "string (UUID)",
+        "inventoryItemId": "string (UUID)",
+        "quantity": "number",
+        "unitPrice": "string (decimal)",
+        "total": "string (decimal)",
+        "createdAt": "string (ISO 8601)",
+        "inventoryItem": {
+          "id": "string (UUID)",
+          "name": "string",
+          "description": "string",
+          "unitPrice": "string (decimal)"
+        }
+      }
+    ],
+    "payments": [
+      {
+        "id": "string (UUID)",
+        "billId": "string (UUID)",
+        "amount": "string (decimal)",
+        "paymentDate": "string (ISO 8601)",
+        "paymentMethod": "string",
+        "notes": "string",
+        "createdAt": "string (ISO 8601)"
+      }
+    ],
+    "paidAmount": "string (decimal)",
+    "outstandingAmount": "string (decimal)"
+  }
+]
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid date format
+- `404 Not Found`: Customer not found
+
+---
+
+#### Create Bill for Customer
+**POST** `/customers/{id}/bills`
+
+Create a new bill directly for a specific customer.
+
+**Headers:** Requires session cookie
+
+**Path Parameters:**
+- `id`: Customer UUID
+
+**Request Body:**
+```json
+{
+  "bill": {
+    "customerId": "string (UUID, auto-set to path id)",
+    "subtotal": "string (decimal, required)",
+    "taxRate": "string (decimal, optional, default: 0.00)",
+    "taxAmount": "string (decimal, optional, default: 0.00)",
+    "total": "string (decimal, required)",
+    "notes": "string (optional)",
+    "status": "string (optional, default: pending)",
+    "userId": "string (UUID, required)"
+  },
+  "items": [
+    {
+      "inventoryItemId": "string (UUID, required)",
+      "quantity": "number (required, > 0)",
+      "unitPrice": "string (decimal, required)",
+      "total": "string (decimal, required)"
+    }
+  ]
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "id": "string (UUID)",
+  "billNumber": "string (auto-generated)",
+  "customerId": "string (UUID)",
+  "userId": "string (UUID)",
+  "subtotal": "string (decimal)",
+  "taxRate": "string (decimal)",
+  "taxAmount": "string (decimal)",
+  "total": "string (decimal)",
+  "status": "string",
+  "notes": "string",
+  "dueDate": "string (ISO 8601)",
+  "paidDate": "string (ISO 8601)",
+  "createdAt": "string (ISO 8601)",
+  "updatedAt": "string (ISO 8601)",
+  "customer": {
+    "id": "string (UUID)",
+    "name": "string",
+    "email": "string",
+    "phone": "string"
+  },
+  "billItems": [
+    {
+      "id": "string (UUID)",
+      "billId": "string (UUID)",
+      "inventoryItemId": "string (UUID)",
+      "quantity": "number",
+      "unitPrice": "string (decimal)",
+      "total": "string (decimal)",
+      "createdAt": "string (ISO 8601)",
+      "inventoryItem": {
+        "id": "string (UUID)",
+        "name": "string",
+        "description": "string",
+        "unitPrice": "string (decimal)"
+      }
+    }
+  ]
+}
+```
+
+**Business Logic:**
+- Automatically generates bill number (INV-000001, INV-000002, etc.)
+- Reduces inventory quantities for each item
+- Updates inventory `updatedAt` timestamp
+
+**Error Responses:**
+- `400 Bad Request`: Invalid bill data or validation errors
+- `404 Not Found`: Customer or inventory item not found
+
+---
+
+### Purchase History Endpoints (Date-wise)
+
+#### Get Daily Purchase History
+**GET** `/purchase-history/daily`
+
+Get all purchases (bills) for a specific date - like a daily purchase register/ledger.
+
+**Headers:** Requires session cookie
+
+**Query Parameters:**
+- `date` (required): Date to fetch purchases for (ISO 8601 format, e.g., "2024-01-15")
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "id": "string (UUID)",
+    "billNumber": "string",
+    "customerId": "string (UUID)",
+    "userId": "string (UUID)",
+    "subtotal": "string (decimal)",
+    "taxRate": "string (decimal)",
+    "taxAmount": "string (decimal)",
+    "total": "string (decimal)",
+    "status": "string",
+    "notes": "string",
+    "dueDate": "string (ISO 8601)",
+    "paidDate": "string (ISO 8601)",
+    "createdAt": "string (ISO 8601)",
+    "updatedAt": "string (ISO 8601)",
+    "customer": {
+      "id": "string (UUID)",
+      "name": "string",
+      "email": "string",
+      "phone": "string"
+    },
+    "billItems": [
+      {
+        "id": "string (UUID)",
+        "billId": "string (UUID)",
+        "inventoryItemId": "string (UUID)",
+        "quantity": "number",
+        "unitPrice": "string (decimal)",
+        "total": "string (decimal)",
+        "createdAt": "string (ISO 8601)",
+        "inventoryItem": {
+          "id": "string (UUID)",
+          "name": "string",
+          "description": "string",
+          "unitPrice": "string (decimal)"
+        }
+      }
+    ],
+    "payments": [
+      {
+        "id": "string (UUID)",
+        "amount": "string (decimal)",
+        "paymentDate": "string (ISO 8601)",
+        "paymentMethod": "string"
+      }
+    ],
+    "paidAmount": "string (decimal)",
+    "outstandingAmount": "string (decimal)"
+  }
+]
+```
+
+**Business Logic:**
+- Returns all bills created on the specified date
+- Bills are ordered by creation time
+- Includes payment information and outstanding amounts
+- Perfect for daily sales register/diary view
+
+**Error Responses:**
+- `400 Bad Request`: Missing or invalid date parameter
+
+---
+
+#### Get Date Range Purchase History
+**GET** `/purchase-history/date-range`
+
+Get all purchases (bills) within a date range.
+
+**Headers:** Requires session cookie
+
+**Query Parameters:**
+- `startDate` (required): Start date for range (ISO 8601 format)
+- `endDate` (required): End date for range (ISO 8601 format)
+
+**Response:** `200 OK`
+
+Same response format as Daily Purchase History, but includes all bills between startDate and endDate (inclusive).
+
+**Business Logic:**
+- Returns all bills created between startDate and endDate
+- Useful for monthly/quarterly reports
+- Includes complete payment and outstanding information
+
+**Error Responses:**
+- `400 Bad Request`: Missing or invalid date parameters
+
+---
+
+### Payment Endpoints
+
+#### Get Bill Payments
+**GET** `/bills/{id}/payments`
+
+Get all payment records for a specific bill.
+
+**Headers:** Requires session cookie
+
+**Path Parameters:**
+- `id`: Bill UUID
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "id": "string (UUID)",
+    "billId": "string (UUID)",
+    "amount": "string (decimal)",
+    "paymentDate": "string (ISO 8601)",
+    "paymentMethod": "string",
+    "notes": "string",
+    "userId": "string (UUID)",
+    "createdAt": "string (ISO 8601)"
+  }
+]
+```
+
+**Business Logic:**
+- Returns all payments for the bill in reverse chronological order (newest first)
+- Supports partial payment tracking
+
+**Error Responses:**
+- `404 Not Found`: Bill not found or doesn't belong to user
+
+---
+
+#### Record Payment
+**POST** `/bills/{id}/payments`
+
+Record a payment (full or partial) for a bill.
+
+**Headers:** Requires session cookie
+
+**Path Parameters:**
+- `id`: Bill UUID
+
+**Request Body:**
+```json
+{
+  "amount": "string (decimal, required)",
+  "paymentDate": "string (ISO 8601, optional, defaults to current date)",
+  "paymentMethod": "string (optional, cash|card|bank_transfer|cheque|upi|other)",
+  "notes": "string (optional)"
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "id": "string (UUID)",
+  "billId": "string (UUID)",
+  "amount": "string (decimal)",
+  "paymentDate": "string (ISO 8601)",
+  "paymentMethod": "string",
+  "notes": "string",
+  "userId": "string (UUID)",
+  "createdAt": "string (ISO 8601)"
+}
+```
+
+**Business Logic:**
+- Automatically updates bill status:
+  - If payment amount >= bill total: status → "paid", paidDate is set
+  - If partial payment made: status → "partial"
+  - If payment amount exceeds bill total: error is returned
+- Supports multiple partial payments
+- Tracks payment method and notes
+
+**Error Responses:**
+- `400 Bad Request`: Invalid payment data or amount exceeds outstanding amount
+- `404 Not Found`: Bill not found
+
+---
+
 ### Bills Endpoints
 
 #### List Bills
@@ -992,7 +1373,17 @@ Get all bills with customer and item relations.
           "unitPrice": "string (decimal)"
         }
       }
-    ]
+    ],
+    "payments": [
+      {
+        "id": "string (UUID)",
+        "amount": "string (decimal)",
+        "paymentDate": "string (ISO 8601)",
+        "paymentMethod": "string"
+      }
+    ],
+    "paidAmount": "string (decimal)",
+    "outstandingAmount": "string (decimal)"
   }
 ]
 ```
@@ -1053,8 +1444,21 @@ Get a specific bill with full details.
         "unitPrice": "string (decimal)",
         "sku": "string"
       }
-    }
-  ]
+    ],
+    "payments": [
+      {
+        "id": "string (UUID)",
+        "billId": "string (UUID)",
+        "amount": "string (decimal)",
+        "paymentDate": "string (ISO 8601)",
+        "paymentMethod": "string",
+        "notes": "string",
+        "createdAt": "string (ISO 8601)"
+      }
+    ],
+    "paidAmount": "string (decimal)",
+    "outstandingAmount": "string (decimal)"
+  }
 }
 ```
 

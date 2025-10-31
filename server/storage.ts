@@ -6,6 +6,7 @@ import {
   customers,
   bills,
   billItems,
+  payments,
   type User,
   type UpsertUser,
   type Category,
@@ -23,6 +24,8 @@ import {
   type BillWithRelations,
   type BillItem,
   type InsertBillItem,
+  type Payment,
+  type InsertPayment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, count, sum } from "drizzle-orm";
@@ -62,6 +65,19 @@ export interface IStorage {
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   updateCustomer(id: string, userId: string, customer: Partial<InsertCustomer>): Promise<Customer | undefined>;
   deleteCustomer(id: string, userId: string): Promise<boolean>;
+
+  // Customer Purchase History operations
+  getCustomerPurchaseHistory(customerId: string, userId: string, startDate?: Date, endDate?: Date): Promise<BillWithRelations[]>;
+  createBillForCustomer(bill: InsertBill, items: Omit<InsertBillItem, 'billId'>[], customerId: string): Promise<BillWithRelations>;
+  
+  // Date-wise Purchase History operations
+  getDailyPurchaseHistory(userId: string, date: Date): Promise<BillWithRelations[]>;
+  getDateRangePurchaseHistory(userId: string, startDate: Date, endDate: Date): Promise<BillWithRelations[]>;
+  
+  // Payment operations
+  getBillPayments(billId: string, userId: string): Promise<Payment[]>;
+  recordPayment(payment: InsertPayment): Promise<Payment>;
+  getBillWithPayments(billId: string, userId: string): Promise<BillWithRelations | undefined>;
 
   // Bill operations
   getBills(userId: string): Promise<BillWithRelations[]>;
@@ -356,6 +372,244 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+  // Customer Purchase History operations
+  async getCustomerPurchaseHistory(customerId: string, userId: string, startDate?: Date, endDate?: Date): Promise<BillWithRelations[]> {
+    let whereConditions = [eq(bills.customerId, customerId), eq(bills.userId, userId)];
+
+    if (startDate) {
+      whereConditions.push(sql`DATE(${bills.createdAt}) >= DATE(${startDate})`);
+    }
+    if (endDate) {
+      whereConditions.push(sql`DATE(${bills.createdAt}) <= DATE(${endDate})`);
+    }
+
+    const billsData = await db
+      .select()
+      .from(bills)
+      .where(and(...whereConditions))
+      .orderBy(desc(bills.createdAt));
+
+    const billsWithRelations: BillWithRelations[] = [];
+
+    for (const bill of billsData) {
+      const customer = await this.getCustomer(bill.customerId, userId);
+      if (!customer) continue;
+
+      const items = await db
+        .select({
+          id: billItems.id,
+          billId: billItems.billId,
+          inventoryItemId: billItems.inventoryItemId,
+          quantity: billItems.quantity,
+          unitPrice: billItems.unitPrice,
+          total: billItems.total,
+          createdAt: billItems.createdAt,
+          inventoryItem: inventoryItems,
+        })
+        .from(billItems)
+        .innerJoin(inventoryItems, eq(billItems.inventoryItemId, inventoryItems.id))
+        .where(eq(billItems.billId, bill.id));
+
+      const enrichedBill = await this.enrichBillWithPayments(bill, customer, items);
+      billsWithRelations.push(enrichedBill);
+    }
+
+    return billsWithRelations;
+  }
+
+  async createBillForCustomer(bill: InsertBill, items: Omit<InsertBillItem, 'billId'>[], customerId: string): Promise<BillWithRelations> {
+    // Verify customer exists and belongs to user
+    const customer = await this.getCustomer(customerId, bill.userId);
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+
+    // Generate bill number
+    const billCount = await db.select({ count: count() }).from(bills).where(eq(bills.userId, bill.userId));
+    const billNumber = `INV-${String(billCount[0].count + 1).padStart(6, '0')}`;
+
+    const [createdBill] = await db
+      .insert(bills)
+      .values({ ...bill, billNumber })
+      .returning();
+
+    // Insert bill items
+    const billItemsWithBillId = items.map(item => ({
+      ...item,
+      billId: createdBill.id,
+    }));
+
+    await db.insert(billItems).values(billItemsWithBillId);
+
+    // Update inventory quantities
+    for (const item of items) {
+      await db
+        .update(inventoryItems)
+        .set({
+          quantity: sql`${inventoryItems.quantity} - ${item.quantity}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(inventoryItems.id, item.inventoryItemId));
+    }
+
+    const fullBill = await this.getBillWithPayments(createdBill.id, bill.userId);
+    if (!fullBill) throw new Error("Failed to retrieve created bill");
+
+    return fullBill;
+  }
+
+  // Helper method to get payments and calculate outstanding amounts
+  private async enrichBillWithPayments(bill: Bill, customer: Customer, items: any[]): Promise<BillWithRelations> {
+    const billPayments = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.billId, bill.id))
+      .orderBy(desc(payments.paymentDate));
+
+    const paidAmount = billPayments.reduce((sum, p) => sum + parseFloat(p.amount || "0"), 0);
+    const total = parseFloat(bill.total || "0");
+    const outstandingAmount = Math.max(0, total - paidAmount);
+
+    return {
+      ...bill,
+      customer,
+      billItems: items,
+      payments: billPayments,
+      paidAmount: paidAmount.toFixed(2),
+      outstandingAmount: outstandingAmount.toFixed(2),
+    };
+  }
+
+  // Date-wise Purchase History operations
+  async getDailyPurchaseHistory(userId: string, date: Date): Promise<BillWithRelations[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return this.getDateRangePurchaseHistory(userId, startOfDay, endOfDay);
+  }
+
+  async getDateRangePurchaseHistory(userId: string, startDate: Date, endDate: Date): Promise<BillWithRelations[]> {
+    const billsData = await db
+      .select()
+      .from(bills)
+      .where(
+        and(
+          eq(bills.userId, userId),
+          sql`DATE(${bills.createdAt}) >= DATE(${startDate})`,
+          sql`DATE(${bills.createdAt}) <= DATE(${endDate})`
+        )
+      )
+      .orderBy(bills.createdAt);
+
+    const billsWithRelations: BillWithRelations[] = [];
+
+    for (const bill of billsData) {
+      const customer = await this.getCustomer(bill.customerId, userId);
+      if (!customer) continue;
+
+      const items = await db
+        .select({
+          id: billItems.id,
+          billId: billItems.billId,
+          inventoryItemId: billItems.inventoryItemId,
+          quantity: billItems.quantity,
+          unitPrice: billItems.unitPrice,
+          total: billItems.total,
+          createdAt: billItems.createdAt,
+          inventoryItem: inventoryItems,
+        })
+        .from(billItems)
+        .innerJoin(inventoryItems, eq(billItems.inventoryItemId, inventoryItems.id))
+        .where(eq(billItems.billId, bill.id));
+
+      const enrichedBill = await this.enrichBillWithPayments(bill, customer, items);
+      billsWithRelations.push(enrichedBill);
+    }
+
+    return billsWithRelations;
+  }
+
+  // Payment operations
+  async getBillPayments(billId: string, userId: string): Promise<Payment[]> {
+    // Verify bill belongs to user
+    const [bill] = await db
+      .select()
+      .from(bills)
+      .where(and(eq(bills.id, billId), eq(bills.userId, userId)));
+
+    if (!bill) return [];
+
+    return db
+      .select()
+      .from(payments)
+      .where(eq(payments.billId, billId))
+      .orderBy(desc(payments.paymentDate));
+  }
+
+  async recordPayment(payment: InsertPayment): Promise<Payment> {
+    // Verify bill exists and belongs to user
+    const [bill] = await db
+      .select()
+      .from(bills)
+      .where(and(eq(bills.id, payment.billId), eq(bills.userId, payment.userId)));
+
+    if (!bill) {
+      throw new Error("Bill not found");
+    }
+
+    const [createdPayment] = await db.insert(payments).values(payment).returning();
+
+    // Update bill status if fully paid
+    const existingPayments = await this.getBillPayments(bill.id, payment.userId);
+    const totalPaid = existingPayments.reduce((sum, p) => sum + parseFloat(p.amount || "0"), 0) + parseFloat(payment.amount || "0");
+    const billTotal = parseFloat(bill.total || "0");
+
+    if (totalPaid >= billTotal) {
+      await db
+        .update(bills)
+        .set({ status: "paid", paidDate: new Date(), updatedAt: new Date() })
+        .where(eq(bills.id, bill.id));
+    } else if (bill.status === "pending" && totalPaid > 0) {
+      await db
+        .update(bills)
+        .set({ status: "partial", updatedAt: new Date() })
+        .where(eq(bills.id, bill.id));
+    }
+
+    return createdPayment;
+  }
+
+  async getBillWithPayments(billId: string, userId: string): Promise<BillWithRelations | undefined> {
+    const [bill] = await db
+      .select()
+      .from(bills)
+      .where(and(eq(bills.id, billId), eq(bills.userId, userId)));
+
+    if (!bill) return undefined;
+
+    const customer = await this.getCustomer(bill.customerId, userId);
+    if (!customer) return undefined;
+
+    const items = await db
+      .select({
+        id: billItems.id,
+        billId: billItems.billId,
+        inventoryItemId: billItems.inventoryItemId,
+        quantity: billItems.quantity,
+        unitPrice: billItems.unitPrice,
+        total: billItems.total,
+        createdAt: billItems.createdAt,
+        inventoryItem: inventoryItems,
+      })
+      .from(billItems)
+      .innerJoin(inventoryItems, eq(billItems.inventoryItemId, inventoryItems.id))
+      .where(eq(billItems.billId, bill.id));
+
+    return this.enrichBillWithPayments(bill, customer, items);
+  }
+
   // Bill operations
   async getBills(userId: string): Promise<BillWithRelations[]> {
     const billsData = await db
@@ -384,11 +638,8 @@ export class DatabaseStorage implements IStorage {
         .where(eq(billItems.billId, bill.id));
 
       if (customer) {
-        billsWithRelations.push({
-          ...bill,
-          customer,
-          billItems: items,
-        });
+        const enrichedBill = await this.enrichBillWithPayments(bill, customer, items);
+        billsWithRelations.push(enrichedBill);
       }
     }
 
@@ -396,36 +647,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBill(id: string, userId: string): Promise<BillWithRelations | undefined> {
-    const [bill] = await db
-      .select()
-      .from(bills)
-      .where(and(eq(bills.id, id), eq(bills.userId, userId)));
-
-    if (!bill) return undefined;
-
-    const customer = await this.getCustomer(bill.customerId, userId);
-    if (!customer) return undefined;
-
-    const items = await db
-      .select({
-        id: billItems.id,
-        billId: billItems.billId,
-        inventoryItemId: billItems.inventoryItemId,
-        quantity: billItems.quantity,
-        unitPrice: billItems.unitPrice,
-        total: billItems.total,
-        createdAt: billItems.createdAt,
-        inventoryItem: inventoryItems,
-      })
-      .from(billItems)
-      .innerJoin(inventoryItems, eq(billItems.inventoryItemId, inventoryItems.id))
-      .where(eq(billItems.billId, bill.id));
-
-    return {
-      ...bill,
-      customer,
-      billItems: items,
-    };
+    return this.getBillWithPayments(id, userId);
   }
 
   async getRecentTransactions(userId: string, limit = 10): Promise<BillWithRelations[]> {

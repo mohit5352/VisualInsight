@@ -4,7 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, TrendingUp, DollarSign, Package } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart3, TrendingUp, DollarSign, Package, CalendarDays } from "lucide-react";
+import { DailyPurchaseRegister } from "@/components/purchase-history/daily-purchase-register";
 
 export default function Reports() {
   const { toast } = useToast();
@@ -87,26 +89,45 @@ export default function Reports() {
           </div>
 
           {/* Main Reports Area */}
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5" />
+          <Tabs defaultValue="daily-register" className="mt-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="daily-register" className="flex items-center space-x-2">
+                <CalendarDays className="w-4 h-4" />
+                <span>Daily Purchase Register</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center space-x-2">
+                <BarChart3 className="w-4 h-4" />
                 <span>Business Analytics</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  Reports Coming Soon
-                </h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  We're working on comprehensive reporting features including sales analytics, 
-                  inventory reports, customer insights, and performance metrics.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="daily-register" className="mt-6">
+              <DailyPurchaseRegister />
+            </TabsContent>
+            
+            <TabsContent value="analytics" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <BarChart3 className="w-5 h-5" />
+                    <span>Business Analytics</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
+                      Reports Coming Soon
+                    </h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      We're working on comprehensive reporting features including sales analytics, 
+                      inventory reports, customer insights, and performance metrics.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>

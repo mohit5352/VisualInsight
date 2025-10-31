@@ -99,7 +99,7 @@ export const bills = pgTable("bills", {
   taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0.00"),
   taxAmount: decimal("tax_amount", { precision: 12, scale: 2 }).default("0.00"),
   total: decimal("total", { precision: 12, scale: 2 }).notNull(),
-  status: varchar("status", { length: 50 }).default("pending"), // pending, paid, cancelled
+  status: varchar("status", { length: 50 }).default("pending"), // pending, partial, paid, cancelled
   notes: text("notes"),
   dueDate: timestamp("due_date"),
   paidDate: timestamp("paid_date"),
@@ -115,6 +115,18 @@ export const billItems = pgTable("bill_items", {
   quantity: integer("quantity").notNull(),
   unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
   total: decimal("total", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Payments table for partial payment tracking
+export const payments = pgTable("payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  billId: varchar("bill_id").notNull().references(() => bills.id),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  paymentDate: timestamp("payment_date").defaultNow(),
+  notes: text("notes"),
+  paymentMethod: varchar("payment_method", { length: 50 }), // cash, card, bank_transfer, etc.
+  userId: varchar("user_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -190,6 +202,21 @@ export const billItemsRelations = relations(billItems, ({ one }) => ({
   }),
 }));
 
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  bill: one(bills, {
+    fields: [payments.billId],
+    references: [bills.id],
+  }),
+  user: one(users, {
+    fields: [payments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const billsPaymentsRelations = relations(bills, ({ many }) => ({
+  payments: many(payments),
+}));
+
 // Insert schemas
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
@@ -221,6 +248,11 @@ export const insertBillSchema = createInsertSchema(bills).omit({
 });
 
 export const insertBillItemSchema = createInsertSchema(billItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
   id: true,
   createdAt: true,
 });
@@ -260,6 +292,8 @@ export type Bill = typeof bills.$inferSelect;
 export type InsertBill = z.infer<typeof insertBillSchema>;
 export type BillItem = typeof billItems.$inferSelect;
 export type InsertBillItem = z.infer<typeof insertBillItemSchema>;
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type LoginRequest = z.infer<typeof loginSchema>;
 export type RegisterRequest = z.infer<typeof registerSchema>;
@@ -275,6 +309,9 @@ export type BillWithRelations = Bill & {
   billItems: (BillItem & {
     inventoryItem: InventoryItem;
   })[];
+  payments?: Payment[];
+  paidAmount?: string; // Calculated total of all payments
+  outstandingAmount?: string; // Calculated outstanding = total - paidAmount
 };
 
 export type CustomerWithStats = Customer & {

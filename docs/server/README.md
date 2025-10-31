@@ -119,7 +119,7 @@ bills (
   tax_rate: decimal(5,2) (Default: 0.00)
   tax_amount: decimal(12,2) (Default: 0.00)
   total: decimal(12,2) (Not Null)
-  status: varchar (Default: 'pending')
+  status: varchar (Default: 'pending', Values: 'pending'|'partial'|'paid'|'cancelled')
   notes: text
   due_date: timestamp
   paid_date: timestamp
@@ -140,6 +140,28 @@ bill_items (
   created_at: timestamp
 )
 ```
+
+#### Payments Table
+```sql
+payments (
+  id: varchar (UUID, Primary Key)
+  bill_id: varchar (Foreign Key → bills.id, Not Null)
+  amount: decimal(12,2) (Not Null)
+  payment_date: timestamp (Default: now())
+  payment_method: varchar(50) (Optional: 'cash'|'card'|'bank_transfer'|'cheque'|'upi'|'other')
+  notes: text
+  user_id: varchar (Foreign Key → users.id, Not Null)
+  created_at: timestamp (Default: now())
+)
+```
+
+**Business Logic:**
+- Supports multiple partial payments per bill
+- Automatically calculates paid and outstanding amounts
+- Updates bill status based on cumulative payments:
+  - If total payments >= bill total → status = 'paid'
+  - If partial payments made → status = 'partial'
+  - Otherwise → status = 'pending'
 
 #### Sessions Table
 ```sql
@@ -307,6 +329,33 @@ Update an existing customer.
 #### DELETE `/api/customers/:id`
 Delete a customer.
 
+#### GET `/api/customers/:id/purchase-history?startDate=2024-01-01&endDate=2024-01-31`
+Get customer purchase history with optional date filtering. Returns bills with payment details, paid amounts, and outstanding amounts.
+
+#### POST `/api/customers/:id/bills`
+Create a new bill for a specific customer:
+```json
+{
+  "bill": {
+    "subtotal": "250.00",
+    "taxRate": "8.00",
+    "taxAmount": "20.00",
+    "total": "270.00",
+    "notes": "Customer requested delivery",
+    "status": "pending"
+  },
+  "items": [
+    {
+      "inventoryItemId": "item-uuid",
+      "quantity": 10,
+      "unitPrice": "25.00",
+      "total": "250.00"
+    }
+  ]
+}
+```
+Note: `customerId` and `userId` are automatically set from URL and session.
+
 ### Billing Management
 
 #### GET `/api/bills`
@@ -349,6 +398,32 @@ Update bill status:
 
 #### DELETE `/api/bills/:id`
 Delete a bill (restores inventory quantities).
+
+### Purchase History & Payments
+
+#### GET `/api/purchase-history/daily?date=2024-01-15`
+Get all purchases (bills) for a specific date - like a daily purchase register. Returns bills grouped by customer with payment and outstanding information.
+
+#### GET `/api/purchase-history/date-range?startDate=2024-01-01&endDate=2024-01-31`
+Get all purchases within a date range. Useful for monthly/quarterly reports.
+
+#### GET `/api/bills/:id/payments`
+Get all payment records for a specific bill. Returns payments in reverse chronological order.
+
+#### POST `/api/bills/:id/payments`
+Record a payment (full or partial) for a bill:
+```json
+{
+  "amount": "150.00",
+  "paymentDate": "2024-01-15T10:30:00Z",
+  "paymentMethod": "cash",
+  "notes": "Partial payment received"
+}
+```
+Automatically updates bill status:
+- If payment >= bill total → status = 'paid'
+- If partial payment → status = 'partial'
+- Validates that payment doesn't exceed outstanding amount
 
 ## 🔒 Security Features
 

@@ -88,20 +88,37 @@ Built on Radix UI primitives with custom styling:
 ### 4. Customer Management
 - **Customer Database**: Store customer information
 - **Contact Details**: Email, phone, address management
-- **Order History**: Track customer purchase patterns
+- **Purchase History**: 
+  - View customer purchase history with date-wise filtering
+  - See all bills with payment details and outstanding amounts
+  - Add new bills directly from customer profile
+  - Record payments for customer bills
+  - Track paid and outstanding amounts per bill
 - **Customer Stats**: Purchase totals and frequency
 
 ### 5. Billing System
 - **Invoice Generation**: Create professional invoices
 - **Item Selection**: Choose from inventory items
 - **Tax Calculation**: Automatic tax computation
-- **Bill Management**: Track invoice status (pending/paid/cancelled)
+- **Bill Management**: Track invoice status (pending/partial/paid/cancelled)
+- **Payment Tracking**:
+  - Record partial payments for bills
+  - Track payment methods (cash, card, bank transfer, cheque, UPI, etc.)
+  - Automatic bill status updates based on payments
+  - View paid and outstanding amounts
+  - Support for multiple partial payments per bill
 - **PDF Export**: Generate printable invoices (planned)
 
 ### 6. Reports & Analytics
-- **Sales Reports**: Revenue and transaction analysis (planned)
-- **Inventory Reports**: Stock movement tracking (planned)
-- **Performance Metrics**: Business KPIs (planned)
+- **Daily Purchase Register**:
+  - Date-wise view of all purchases/bills
+  - Daily statistics (customers, bills, revenue, paid, outstanding)
+  - Customer-wise grouping within each day
+  - Navigate between dates (previous/next/today)
+  - Complete payment and outstanding tracking
+  - Business diary-like interface for shop owners
+- **Date Range Purchase History**: View purchases across date ranges for monthly/quarterly reporting
+- **Advanced Analytics**: Charts and visualization (planned)
 
 ## 🚀 Getting Started
 

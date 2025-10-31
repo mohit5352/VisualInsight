@@ -18,6 +18,7 @@ import {
 import { Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react";
 import type { CustomerWithStats } from "@shared/schema";
 import { format } from "date-fns";
+import { PurchaseHistoryModal } from "./purchase-history-modal";
 
 interface CustomerTableProps {
   onEditCustomer?: (customerId: string) => void;
@@ -27,6 +28,8 @@ export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithStats | null>(null);
+  const [purchaseHistoryOpen, setPurchaseHistoryOpen] = useState(false);
 
   const { data: customers, isLoading } = useQuery<CustomerWithStats[]>({
     queryKey: ["/api/customers", { withStats: true }],
@@ -79,6 +82,11 @@ export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
     }
   };
 
+  const handleViewPurchaseHistory = (customer: CustomerWithStats) => {
+    setSelectedCustomer(customer);
+    setPurchaseHistoryOpen(true);
+  };
+
   const filteredCustomers = customers?.filter(customer =>
     customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -127,7 +135,7 @@ export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer</TableHead>
+                  <TableHead>Customer (Click name for history)</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Total Orders</TableHead>
@@ -147,9 +155,14 @@ export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
                           </span>
                         </div>
                         <div>
-                          <div className="font-medium text-foreground" data-testid={`text-customer-name-${customer.id}`}>
+                          <Button
+                            variant="ghost"
+                            className="font-medium text-foreground p-0 h-auto justify-start hover:bg-transparent hover:underline"
+                            onClick={() => handleViewPurchaseHistory(customer)}
+                            data-testid={`button-view-history-${customer.id}`}
+                          >
                             {customer.name}
-                          </div>
+                          </Button>
                           {customer.taxId && (
                             <div className="text-sm text-muted-foreground">
                               Tax ID: {customer.taxId}
@@ -238,6 +251,15 @@ export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Purchase History Modal */}
+      {selectedCustomer && (
+        <PurchaseHistoryModal
+          customer={selectedCustomer}
+          open={purchaseHistoryOpen}
+          onOpenChange={setPurchaseHistoryOpen}
+        />
+      )}
     </Card>
   );
 }

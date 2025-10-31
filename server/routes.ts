@@ -10,6 +10,8 @@ import {
   insertCustomerSchema,
   insertBillSchema,
   insertBillItemSchema,
+  insertPaymentSchema,
+  type InsertBill,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -385,6 +387,185 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting customer:", error);
       res.status(500).json({ message: "Failed to delete customer" });
+    }
+  });
+
+  // Customer Purchase History routes
+  app.get("/api/customers/:id/purchase-history", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { id } = req.params;
+      const { startDate, endDate } = req.query;
+
+      // Verify customer exists and belongs to user
+      const customer = await storage.getCustomer(id, userId);
+      if (!customer) {
+        res.status(404).json({ message: "Customer not found" });
+        return;
+      }
+
+      let start: Date | undefined;
+      let end: Date | undefined;
+
+      if (startDate) {
+        start = new Date(startDate as string);
+        if (isNaN(start.getTime())) {
+          res.status(400).json({ message: "Invalid start date format" });
+          return;
+        }
+      }
+
+      if (endDate) {
+        end = new Date(endDate as string);
+        if (isNaN(end.getTime())) {
+          res.status(400).json({ message: "Invalid end date format" });
+          return;
+        }
+      }
+
+      const purchaseHistory = await storage.getCustomerPurchaseHistory(id, userId, start, end);
+      res.json(purchaseHistory);
+    } catch (error) {
+      console.error("Error fetching customer purchase history:", error);
+      res.status(500).json({ message: "Failed to fetch customer purchase history" });
+    }
+  });
+
+  app.post("/api/customers/:id/bills", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { id } = req.params;
+      
+      // Create a schema specifically for customer bills
+      // customerId comes from URL param (:id), userId comes from session  
+      // We need to omit userId and customerId from validation since they come from elsewhere
+      const billSchemaForCustomer = insertBillSchema.omit({ 
+        customerId: true, 
+        userId: true 
+      });
+      
+      const createBillForCustomerSchema = z.object({
+        bill: billSchemaForCustomer,
+        items: z.array(insertBillItemSchema.omit({ billId: true })),
+      });
+      
+      const { bill: billData, items } = createBillForCustomerSchema.parse(req.body);
+
+      // Add customerId from URL and userId from session to complete the bill data
+      const bill: InsertBill = {
+        ...billData,
+        customerId: id,
+        userId: userId,
+      };
+
+      const createdBill = await storage.createBillForCustomer(bill, items, id);
+      res.status(201).json(createdBill);
+    } catch (error) {
+      console.error("Error creating bill for customer:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid bill data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create bill" });
+      }
+    }
+  });
+
+  // Date-wise Purchase History routes
+  app.get("/api/purchase-history/daily", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { date } = req.query;
+
+      if (!date) {
+        res.status(400).json({ message: "Date parameter is required" });
+        return;
+      }
+
+      const selectedDate = new Date(date as string);
+      if (isNaN(selectedDate.getTime())) {
+        res.status(400).json({ message: "Invalid date format" });
+        return;
+      }
+
+      const dailyHistory = await storage.getDailyPurchaseHistory(userId, selectedDate);
+      res.json(dailyHistory);
+    } catch (error) {
+      console.error("Error fetching daily purchase history:", error);
+      res.status(500).json({ message: "Failed to fetch daily purchase history" });
+    }
+  });
+
+  app.get("/api/purchase-history/date-range", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { startDate, endDate } = req.query;
+
+      if (!startDate || !endDate) {
+        res.status(400).json({ message: "Start date and end date parameters are required" });
+        return;
+      }
+
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        res.status(400).json({ message: "Invalid date format" });
+        return;
+      }
+
+      const rangeHistory = await storage.getDateRangePurchaseHistory(userId, start, end);
+      res.json(rangeHistory);
+    } catch (error) {
+      console.error("Error fetching date range purchase history:", error);
+      res.status(500).json({ message: "Failed to fetch date range purchase history" });
+    }
+  });
+
+  // Payment routes
+  app.get("/api/bills/:id/payments", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { id } = req.params;
+      const billPayments = await storage.getBillPayments(id, userId);
+      res.json(billPayments);
+    } catch (error) {
+      console.error("Error fetching bill payments:", error);
+      res.status(500).json({ message: "Failed to fetch bill payments" });
+    }
+  });
+
+  app.post("/api/bills/:id/payments", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const { id } = req.params;
+      // Accept flexible client payload and convert to InsertPayment
+      const paymentInput = z.object({
+        amount: z.string().or(z.number()).transform((v) => String(v)),
+        paymentDate: z.string().optional(),
+        paymentMethod: z.string().optional(),
+        notes: z.string().optional(),
+      }).parse(req.body);
+
+      const payment = await storage.recordPayment({
+        billId: id,
+        userId,
+        amount: paymentInput.amount,
+        paymentDate: paymentInput.paymentDate ? new Date(paymentInput.paymentDate) : undefined,
+        paymentMethod: paymentInput.paymentMethod,
+        notes: paymentInput.notes,
+      } as any);
+      
+      // Invalidate related queries
+      res.status(201).json(payment);
+    } catch (error) {
+      console.error("Error recording payment:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid payment data", errors: error.errors });
+      } else if (error instanceof Error && error.message === "Bill not found") {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Failed to record payment" });
+      }
     }
   });
 

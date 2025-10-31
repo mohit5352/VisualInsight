@@ -61,6 +61,13 @@
   - Total purchase amount
   - Last order date
 - **CRUD Operations**: Full create, read, update, delete functionality
+- **Purchase History**:
+  - View customer purchase history with date-wise filtering
+  - See all bills for a customer with payment details
+  - Track paid and outstanding amounts per bill
+  - Add new bills directly from customer profile
+  - Record payments for customer bills
+  - Date range filtering for purchase history
 
 #### 5. Billing System
 - **Invoice Generation**: Professional invoice creation
@@ -70,11 +77,17 @@
   - Tax calculation (configurable rate)
   - Total amount calculation
 - **Bill Management**: 
-  - Track invoice status (pending/paid/cancelled)
+  - Track invoice status (pending/partial/paid/cancelled)
   - Update bill status
   - Bill deletion with inventory restoration
 - **Bill Numbering**: Auto-generated sequential invoice numbers
 - **Customer Integration**: Link bills to customer profiles
+- **Payment Tracking**:
+  - Record partial payments for bills
+  - Track payment methods (cash, card, bank transfer, cheque, UPI, etc.)
+  - Automatic bill status updates based on payments
+  - Calculate paid amount and outstanding amounts
+  - Support for multiple partial payments per bill
 
 #### 6. User Interface
 - **Responsive Design**: Mobile-first approach
@@ -95,9 +108,18 @@
 ### 🚧 Partially Implemented Features
 
 #### 1. Reports & Analytics
-- **UI Framework**: Reports page with placeholder cards
-- **Status**: "Coming Soon" placeholders
-- **Missing**: Actual report generation and data visualization
+- **Daily Purchase Register**:
+  - Date-wise view of all purchases/bills
+  - Daily statistics (customers, bills, revenue, paid, outstanding)
+  - Customer-wise grouping within each day
+  - Navigate between dates (previous/next/today)
+  - Complete payment and outstanding tracking
+  - Business diary-like interface for shop owners
+- **Date Range Purchase History**:
+  - View purchases across date ranges
+  - Monthly/quarterly reporting capability
+- **Status**: Core functionality implemented
+- **Missing**: Advanced analytics and visualization charts
 
 #### 2. Settings
 - **User Profile Display**: Basic profile information
@@ -137,11 +159,12 @@
 - Purchase order management
 
 #### 5. Financial Management
-- Payment tracking
-- Accounts receivable
+- ✅ Payment tracking (Implemented)
+- Accounts receivable reports
 - Profit/loss calculations
 - Tax reporting
 - Financial statements
+- Payment reconciliation
 
 #### 6. Business Intelligence
 - Dashboard customization
@@ -195,14 +218,14 @@
 **Tasks**:
 - [ ] PDF invoice generation
 - [ ] Email invoice delivery
-- [ ] Payment tracking
+- ✅ Payment tracking (Completed)
 - [ ] Invoice templates
 - [ ] Recurring billing setup
 
 **Technical Requirements**:
 - Integrate PDF generation library
 - Add email service integration
-- Create payment tracking system
+- ✅ Payment tracking system (Implemented)
 - Design invoice templates
 
 ### Phase 2: Reporting & Analytics (Weeks 5-8)

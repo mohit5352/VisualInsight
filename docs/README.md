@@ -93,11 +93,13 @@ npx @openapitools/openapi-generator-cli generate \
 ## 📊 Project Status
 
 ### ✅ **Completed**
-- **Backend API**: 31 endpoints across 7 categories
+- **Backend API**: 35+ endpoints across 9 categories
 - **Authentication**: Session-based security
-- **Database Schema**: Complete relational design
+- **Database Schema**: Complete relational design with payments tracking
 - **API Testing**: 100% success rate for core functionality
 - **Documentation**: Comprehensive API and project docs
+- **Payment System**: Partial payment tracking and outstanding amount calculation
+- **Purchase History**: Date-wise and customer-wise purchase tracking
 
 ### 🚧 **In Progress**
 - **Frontend Development**: React components and UI
@@ -123,6 +125,10 @@ npx @openapitools/openapi-generator-cli generate \
 - ✅ **Tax Calculations**: Configurable tax rates
 - ✅ **Low Stock Alerts**: Proactive inventory management
 - ✅ **Customer Statistics**: Purchase history and analytics
+- ✅ **Partial Payments**: Track multiple payments per bill with outstanding calculations
+- ✅ **Daily Purchase Register**: Date-wise business diary view with customer grouping
+- ✅ **Payment Methods**: Support for cash, card, bank transfer, cheque, UPI, etc.
+- ✅ **Purchase History Filtering**: Date-wise and date-range filtering for customer purchases
 
 ## 🔗 **Related Documentation**
 
@@ -164,4 +170,5 @@ npx @openapitools/openapi-generator-cli generate \
 ---
 
 **VisualInsight Documentation v1.0.0** - Complete business management solution documentation.
+
 

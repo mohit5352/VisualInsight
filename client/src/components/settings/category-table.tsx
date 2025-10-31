@@ -136,7 +136,7 @@ export function CategoryTable() {
                         {category.description || "—"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(category.createdAt), "MMM dd, yyyy")}
+                        {category.createdAt ? format(new Date(category.createdAt), "MMM dd, yyyy") : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-2">
