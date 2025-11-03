@@ -1,0 +1,85 @@
+/* Print Styles for Bill Export */
+@media print {
+  @page {
+    margin: 0.5in;
+    size: letter;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  .invoice-content,
+  .invoice-content * {
+    visibility: visible;
+  }
+  
+  .invoice-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  /* Hide non-printable elements */
+  button,
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  /* Override background colors for print */
+  .print\\:bg-gray-200,
+  tr.bg-gray-100 {
+    background-color: #e5e7eb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .print\\:bg-white,
+  tr.bg-white,
+  tr.bg-gray-50 {
+    background-color: white !important;
+  }
+  
+  /* Spacing adjustments for print */
+  .print\\:mb-6 {
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .print\\:pb-4 {
+    padding-bottom: 1rem !important;
+  }
+  
+  .print\\:p-4 {
+    padding: 1rem !important;
+  }
+  
+  .print\\:mt-6 {
+    margin-top: 1.5rem !important;
+  }
+  
+  .print\\:pt-4 {
+    padding-top: 1rem !important;
+  }
+  
+  /* Ensure borders print correctly */
+  .border-gray-300 {
+    border-color: #d1d5db !important;
+  }
+  
+  /* Text color adjustments for print */
+  .text-gray-900,
+  .text-gray-700,
+  .text-gray-600 {
+    color: #111827 !important;
+  }
+  
+  .text-green-700 {
+    color: #15803d !important;
+  }
+  
+  .text-orange-700 {
+    color: #c2410c !important;
+  }
+}
+

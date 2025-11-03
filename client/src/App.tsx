@@ -13,6 +13,7 @@ import Inventory from "@/pages/inventory";
 import Customers from "@/pages/customers";
 import Billing from "@/pages/billing";
 import Reports from "@/pages/reports";
+import DailyDiary from "@/pages/daily-diary";
 import Settings from "@/pages/settings";
 
 function Router() {
@@ -31,6 +32,7 @@ function Router() {
           <Route path="/customers" component={Unauthorized} />
           <Route path="/billing" component={Unauthorized} />
           <Route path="/reports" component={Unauthorized} />
+          <Route path="/daily-diary" component={Unauthorized} />
           <Route path="/settings" component={Unauthorized} />
         </>
       ) : (
@@ -40,6 +42,7 @@ function Router() {
           <Route path="/customers" component={Customers} />
           <Route path="/billing" component={Billing} />
           <Route path="/reports" component={Reports} />
+          <Route path="/daily-diary" component={DailyDiary} />
           <Route path="/settings" component={Settings} />
         </>
       )}

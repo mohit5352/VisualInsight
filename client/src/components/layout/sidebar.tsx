@@ -9,6 +9,7 @@ import {
   Users,
   FileText,
   BarChart3,
+  BookOpen,
   Settings,
   User
 } from "lucide-react";
@@ -22,6 +23,7 @@ export function Sidebar() {
     { href: "/inventory", icon: Package, label: "Inventory", active: location === "/inventory" },
     { href: "/customers", icon: Users, label: "Customers", active: location === "/customers" },
     { href: "/billing", icon: FileText, label: "Billing", active: location === "/billing" },
+    { href: "/daily-diary", icon: BookOpen, label: "Daily Diary", active: location === "/daily-diary" },
     { href: "/reports", icon: BarChart3, label: "Reports", active: location === "/reports" },
     { href: "/settings", icon: Settings, label: "Settings", active: location === "/settings" },
   ];
