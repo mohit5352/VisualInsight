@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { BillStatusBadge } from "@/components/ui/bill-status-badge";
 import { FileText, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { BillWithRelations } from "@shared/schema";
 import { format } from "date-fns";
+import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 export default function Billing() {
   const { toast } = useToast();
@@ -49,18 +52,7 @@ export default function Billing() {
     return null;
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-accent/10 text-accent';
-      case 'pending':
-        return 'bg-chart-4/10 text-chart-4';
-      case 'cancelled':
-        return 'bg-destructive/10 text-destructive';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
+  // centralized badge now used via BillStatusBadge
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -89,9 +81,10 @@ export default function Billing() {
             </CardHeader>
             <CardContent>
               {billsLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
+                <>
+                  <SectionHeaderSkeleton withBadge={false} />
+                  <TableSkeleton rows={8} cols={6} />
+                </>
               ) : bills && bills.length > 0 ? (
                 <div className="overflow-x-auto">
                   <Table>
@@ -121,12 +114,7 @@ export default function Billing() {
                             ${parseFloat(bill.total).toFixed(2)}
                           </TableCell>
                           <TableCell>
-                            <Badge 
-                              className={getStatusColor(bill.status || 'pending')}
-                              data-testid={`badge-status-${bill.id}`}
-                            >
-                              {(bill.status || 'pending').charAt(0).toUpperCase() + (bill.status || 'pending').slice(1)}
-                            </Badge>
+                          <BillStatusBadge status={bill.status} />
                           </TableCell>
                           <TableCell data-testid={`text-date-${bill.id}`}>
                             {format(new Date(bill.createdAt!), 'MMM dd, yyyy')}

@@ -61,9 +61,26 @@ export function TransactionTimeline({ selectedDate }: TransactionTimelineProps) 
           <CardTitle>Transactions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-3 text-muted-foreground">Loading transactions...</span>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="border rounded-lg p-4 animate-pulse">
+                <div className="flex items-center justify-between pb-3 border-b">
+                  <div>
+                    <div className="h-5 w-40 bg-muted rounded mb-1" />
+                    <div className="h-4 w-24 bg-muted rounded" />
+                  </div>
+                  <div className="text-right">
+                    <div className="h-5 w-24 bg-muted rounded mb-1" />
+                    <div className="h-4 w-40 bg-muted rounded" />
+                  </div>
+                </div>
+                <div className="space-y-3 pt-3">
+                  {[...Array(2)].map((_, j) => (
+                    <div key={j} className="h-14 bg-muted/50 rounded" />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

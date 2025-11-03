@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import type { BillWithRelations } from "@shared/schema";
 import { format, parseISO, addDays, subDays, startOfDay, isToday, isYesterday } from "date-fns";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { StatCardSkeletonGrid } from "@/components/ui/stat-card-skeleton";
 
 interface DailyPurchaseRegisterProps {
   defaultDate?: Date;
@@ -146,55 +148,59 @@ export function DailyPurchaseRegister({ defaultDate }: DailyPurchaseRegisterProp
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Customers</div>
-                <div className="text-2xl font-bold">{totalCustomers}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Package className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Total Bills</div>
-                <div className="text-2xl font-bold">{totalBills}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Total Revenue</div>
-                <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Paid / Outstanding</div>
-                <div className="text-lg font-bold">${totalPaid.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">
-                  ${totalOutstanding.toFixed(2)} pending
+      {isLoading ? (
+        <StatCardSkeletonGrid count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Users className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Customers</div>
+                  <div className="text-2xl font-bold">{totalCustomers}</div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Package className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Total Bills</div>
+                  <div className="text-2xl font-bold">{totalBills}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Total Revenue</div>
+                  <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Paid / Outstanding</div>
+                  <div className="text-lg font-bold">${totalPaid.toFixed(2)}</div>
+                  <div className="text-sm text-muted-foreground">
+                    ${totalOutstanding.toFixed(2)} pending
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Daily Purchases by Customer */}
       <Card>
@@ -203,9 +209,7 @@ export function DailyPurchaseRegister({ defaultDate }: DailyPurchaseRegisterProp
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
+            <TableSkeleton rows={5} cols={7} />
           ) : totalBills > 0 ? (
             <div className="space-y-6">
               {Object.entries(billsByCustomer).map(([customerId, bills]) => {

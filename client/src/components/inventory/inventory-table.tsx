@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/table";
 import { Search, Package, Edit, Trash2, AlertTriangle } from "lucide-react";
 import type { InventoryItemWithRelations } from "@shared/schema";
+import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 interface InventoryTableProps {
   onEditItem?: (itemId: string) => void;
@@ -86,9 +88,8 @@ export function InventoryTable({ onEditItem }: InventoryTableProps) {
           <CardTitle>Inventory Items</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
+          <SectionHeaderSkeleton />
+          <TableSkeleton rows={6} cols={8} />
         </CardContent>
       </Card>
     );

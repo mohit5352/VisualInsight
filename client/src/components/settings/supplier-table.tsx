@@ -17,6 +17,8 @@ import {
 import { Search, Building2, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
 import type { Supplier } from "@shared/schema";
 import { format } from "date-fns";
+import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 export function SupplierTable() {
   const { toast } = useToast();
@@ -81,9 +83,8 @@ export function SupplierTable() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
+          <SectionHeaderSkeleton />
+          <TableSkeleton rows={6} cols={5} />
         </CardContent>
       </Card>
     );

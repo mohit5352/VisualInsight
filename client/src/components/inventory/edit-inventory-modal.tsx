@@ -24,6 +24,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
+import { FormSkeleton } from "@/components/ui/form-skeleton";
 import {
   Select,
   SelectContent,
@@ -42,17 +44,17 @@ export function EditInventoryModal({ isOpen, onClose, itemId }: EditInventoryMod
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
     enabled: isOpen,
   });
 
-  const { data: suppliers } = useQuery<Supplier[]>({
+  const { data: suppliers, isLoading: isLoadingSuppliers } = useQuery<Supplier[]>({
     queryKey: ["/api/suppliers"],
     enabled: isOpen,
   });
 
-  const { data: item } = useQuery<InventoryItemWithRelations>({
+  const { data: item, isLoading: isLoadingItem } = useQuery<InventoryItemWithRelations>({
     queryKey: [`/api/inventory/${itemId}`],
     enabled: isOpen && !!itemId,
     staleTime: 0, // Always fetch fresh data when modal opens
@@ -143,12 +145,29 @@ export function EditInventoryModal({ isOpen, onClose, itemId }: EditInventoryMod
 
   if (!itemId) return null;
 
+  const isInitialLoading = isLoadingItem || isLoadingCategories || isLoadingSuppliers;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md animate-fade-in">
         <DialogHeader>
           <DialogTitle>Edit Inventory Item</DialogTitle>
         </DialogHeader>
+        {isInitialLoading ? (
+          <div className="space-y-4">
+            <SectionHeaderSkeleton withSearch={false} />
+            <FormSkeleton
+              fieldGroups={[
+                { columns: 1, fields: 1 },
+                { columns: 1, fields: 1 },
+                { columns: 1, fields: 1 },
+                { columns: 2, fields: 2 },
+                { columns: 2, fields: 2 },
+                { columns: 1, fields: 1 },
+              ]}
+            />
+          </div>
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -341,6 +360,7 @@ export function EditInventoryModal({ isOpen, onClose, itemId }: EditInventoryMod
             </div>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

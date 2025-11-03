@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, DollarSign, Calendar, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import type { Payment } from "@shared/schema";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PaymentHistoryProps {
   billId: string;
@@ -90,8 +91,21 @@ export function PaymentHistory({ billId }: PaymentHistoryProps) {
       {isExpanded && (
         <div className="mt-3 space-y-2 animate-in slide-in-from-top-2">
           {isLoading ? (
-            <div className="text-center py-4 text-sm text-muted-foreground">
-              Loading payment history...
+            <div className="space-y-2">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="bg-muted/30 rounded">
+                  <div className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-40" />
+                        <Skeleton className="h-3 w-28" />
+                      </div>
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : payments && payments.length > 0 ? (
             <div className="space-y-2">

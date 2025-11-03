@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { BillStatusBadge } from "@/components/ui/bill-status-badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -36,18 +37,7 @@ export function RecentTransactions() {
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-accent/10 text-accent';
-      case 'pending':
-        return 'bg-chart-4/10 text-chart-4';
-      case 'cancelled':
-        return 'bg-destructive/10 text-destructive';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
+  // centralized via BillStatusBadge
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -102,9 +92,7 @@ export function RecentTransactions() {
                       ${parseFloat(transaction.total).toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(transaction.status || 'pending')}>
-                        {(transaction.status || 'pending').charAt(0).toUpperCase() + (transaction.status || 'pending').slice(1)}
-                      </Badge>
+                      <BillStatusBadge status={transaction.status} />
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {format(new Date(transaction.createdAt!), 'MMM dd')}

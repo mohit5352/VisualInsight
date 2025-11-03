@@ -99,7 +99,7 @@ export function CustomerPanel({
         </div>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-          <TabsContent value="list" className="m-0 flex-1 flex flex-col overflow-hidden">
+          <TabsContent value="list" className="m-0 h-full overflow-hidden">
             <CustomerList
               onEditCustomer={handleEditCustomer}
               onSelectCustomer={mode === "select" ? handleSelectCustomer : undefined}
@@ -117,7 +117,7 @@ export function CustomerPanel({
             )}
           </TabsContent>
 
-          <TabsContent value="create" className="m-0 flex-1 flex flex-col overflow-hidden">
+          <TabsContent value="create" className="m-0 h-full overflow-hidden">
             <CustomerForm
               onSuccess={handleCustomerCreated}
               onCancel={() => setActiveTab("list")}
@@ -125,7 +125,7 @@ export function CustomerPanel({
           </TabsContent>
 
           {editingCustomer && (
-            <TabsContent value="edit" className="m-0 flex-1 flex flex-col overflow-hidden">
+            <TabsContent value="edit" className="m-0 h-full overflow-hidden">
               <CustomerForm
                 customer={editingCustomer}
                 onSuccess={handleCustomerEdited}

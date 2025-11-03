@@ -24,6 +24,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
+import { FormSkeleton } from "@/components/ui/form-skeleton";
 
 interface EditCustomerModalProps {
   isOpen: boolean;
@@ -35,7 +37,7 @@ export function EditCustomerModal({ isOpen, onClose, customerId }: EditCustomerM
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: customer } = useQuery<Customer>({
+  const { data: customer, isLoading } = useQuery<Customer>({
     queryKey: [`/api/customers/${customerId}`],
     enabled: isOpen && !!customerId,
     staleTime: 0, // Always fetch fresh data when modal opens
@@ -132,6 +134,20 @@ export function EditCustomerModal({ isOpen, onClose, customerId }: EditCustomerM
             Update customer information. Fill in the details below.
           </DialogDescription>
         </DialogHeader>
+        {isLoading ? (
+          <div className="space-y-4">
+            <SectionHeaderSkeleton withSearch={false} />
+            <FormSkeleton
+              fieldGroups={[
+                { columns: 1, fields: 1 },
+                { columns: 2, fields: 2 },
+                { columns: 1, fields: 1 },
+                { columns: 3, fields: 3 },
+                { columns: 1, fields: 1 },
+              ]}
+            />
+          </div>
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -309,6 +325,7 @@ export function EditCustomerModal({ isOpen, onClose, customerId }: EditCustomerM
             </div>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

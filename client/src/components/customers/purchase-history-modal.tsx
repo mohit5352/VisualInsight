@@ -37,6 +37,7 @@ import type { BillWithRelations, Customer } from "@shared/schema";
 import { format } from "date-fns";
 import { AddBillModal } from "./add-bill-modal";
 import { RecordPaymentModal } from "./record-payment-modal";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 interface PurchaseHistoryModalProps {
   customer: Customer;
@@ -236,9 +237,7 @@ export function PurchaseHistoryModal({ customer, open, onOpenChange }: PurchaseH
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
+              <TableSkeleton rows={6} cols={10} />
             ) : purchaseHistory && purchaseHistory.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>

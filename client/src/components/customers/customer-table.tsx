@@ -19,6 +19,8 @@ import { Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react";
 import type { CustomerWithStats } from "@shared/schema";
 import { format } from "date-fns";
 import { PurchaseHistoryModal } from "./purchase-history-modal";
+import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 interface CustomerTableProps {
   onEditCustomer?: (customerId: string) => void;
@@ -100,9 +102,8 @@ export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
           <CardTitle>Customers</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
+          <SectionHeaderSkeleton />
+          <TableSkeleton rows={6} cols={7} />
         </CardContent>
       </Card>
     );

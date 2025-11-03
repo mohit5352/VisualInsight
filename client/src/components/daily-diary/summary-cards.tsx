@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Users, Package, DollarSign } from "lucide-react";
 import type { BillWithRelations } from "@shared/schema";
 import { format } from "date-fns";
+import { StatCardSkeletonGrid } from "@/components/ui/stat-card-skeleton";
 
 interface SummaryCardsProps {
   selectedDate: Date;
@@ -94,6 +95,10 @@ export function SummaryCards({ selectedDate }: SummaryCardsProps) {
     },
   ];
 
+  if (isLoading) {
+    return <StatCardSkeletonGrid />;
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, index) => {
@@ -131,12 +136,6 @@ export function SummaryCards({ selectedDate }: SummaryCardsProps) {
         );
       })}
       
-      {isLoading && (
-        // Loading placeholder - can be enhanced with skeletons
-        <div className="col-span-full text-center py-4 text-muted-foreground">
-          Loading summary...
-        </div>
-      )}
     </div>
   );
 }
