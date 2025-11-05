@@ -13,6 +13,15 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        // App brand gradient colors
+        brand: {
+          start: "#4a8bf7",
+          end: "#6ee7b7",
+        },
+        headerBg: {
+          start: "#4a8bf7",
+          end: "#102a20"
+        },
         card: {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)",

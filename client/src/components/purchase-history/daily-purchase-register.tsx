@@ -130,7 +130,7 @@ export function DailyPurchaseRegister({ defaultDate }: DailyPurchaseRegisterProp
                   type="date"
                   value={format(selectedDate, "yyyy-MM-dd")}
                   onChange={(e) => setSelectedDate(parseISO(e.target.value))}
-                  className="w-40"
+                  className="w-40 [&::-webkit-calendar-picker-indicator]:w-4 [&::-webkit-calendar-picker-indicator]:h-4 [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:mr-1 dark:[color-scheme:dark] cursor-pointer"
                 />
                 {!isToday(selectedDate) && (
                   <Button variant="outline" size="sm" onClick={goToToday}>

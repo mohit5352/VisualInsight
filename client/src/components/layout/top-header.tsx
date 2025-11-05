@@ -11,7 +11,7 @@ export function TopHeader() {
   const { user } = useAuth();
 
   return (
-    <header className="h-16 bg-card shadow-header flex items-center justify-between px-4 z-50 relative">
+    <header className="h-16 bg-gradient-to-l from-headerBg-start to-headerBg-end shadow-header flex items-center justify-between px-4 z-50 relative">
       {/* Left: Logo and Shop Name */}
       <div className="flex items-center space-x-4">
         <Button
@@ -46,7 +46,7 @@ export function TopHeader() {
           className="relative p-2 rounded-md hover:bg-muted hover-lift transition-colors"
           data-testid="button-notifications"
         >
-          <Bell className="text-muted-foreground w-5 h-5" />
+          <Bell className="text-foreground w-5 h-5" />
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center font-medium">
             3
           </span>
@@ -62,9 +62,9 @@ export function TopHeader() {
           aria-label="Toggle theme"
         >
           {theme === 'light' ? (
-            <Moon className="text-muted-foreground w-5 h-5" />
+            <Moon className="text-foreground w-5 h-5" />
           ) : (
-            <Sun className="text-muted-foreground w-5 h-5" />
+            <Sun className="text-foreground w-5 h-5" />
           )}
         </Button>
 

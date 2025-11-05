@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign, Calendar } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import type { BillWithRelations } from "@shared/schema";
 import { format } from "date-fns";
 
@@ -212,14 +212,13 @@ export function RecordPaymentModal({ bill, open, onOpenChange }: RecordPaymentMo
 
             <div className="space-y-2">
               <Label htmlFor="paymentDate">Payment Date *</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <div className="flex">
                 <Input
                   id="paymentDate"
                   type="date"
                   value={paymentDate}
                   onChange={(e) => setPaymentDate(e.target.value)}
-                  className="pl-10"
+                  className="flex-1 w-auto pr-2 [&::-webkit-calendar-picker-indicator]:w-4 [&::-webkit-calendar-picker-indicator]:h-4 [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer dark:[color-scheme:dark] cursor-pointer"
                   required
                 />
               </div>

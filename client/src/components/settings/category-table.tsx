@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -14,16 +13,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Tag, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
+import { Tag, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
 import type { Category } from "@shared/schema";
 import { format } from "date-fns";
 import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { Badge } from "@/components/ui/badge";
 
-export function CategoryTable() {
+interface CategoryTableProps {
+  searchQuery?: string;
+}
+
+export function CategoryTable({ searchQuery = "" }: CategoryTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
+  // searchQuery moved to parent for consistency across pages
 
   const { data: categories, isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -95,22 +99,11 @@ export function CategoryTable() {
         <CardTitle className="flex items-center space-x-2">
           <Tag className="w-5 h-5" />
           <span>Categories</span>
+          <Badge variant="secondary">{categories?.length || 0}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search categories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-              data-testid="input-search-categories"
-            />
-          </div>
-
           {/* Table */}
           {filteredCategories.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">

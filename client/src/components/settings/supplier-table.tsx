@@ -4,8 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -14,16 +14,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Building2, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
+import { Building2, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
 import type { Supplier } from "@shared/schema";
 import { format } from "date-fns";
 import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
-export function SupplierTable() {
+interface SupplierTableProps {
+  searchQuery?: string;
+}
+
+export function SupplierTable({ searchQuery = "" }: SupplierTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
+  // searchQuery handled by parent for consistency
 
   const { data: suppliers, isLoading } = useQuery<Supplier[]>({
     queryKey: ["/api/suppliers"],
@@ -96,22 +100,11 @@ export function SupplierTable() {
         <CardTitle className="flex items-center space-x-2">
           <Building2 className="w-5 h-5" />
           <span>Suppliers</span>
+          <Badge variant="secondary">{suppliers?.length || 0}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search suppliers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-              data-testid="input-search-suppliers"
-            />
-          </div>
-
           {/* Table */}
           {filteredSuppliers.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">

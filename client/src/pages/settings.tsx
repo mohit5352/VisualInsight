@@ -6,7 +6,7 @@ import { TopHeader } from "@/components/layout/top-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, User, Bell, Shield, LogOut, Tag, Building2 } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, LogOut, Tag, Building2, Search } from "lucide-react";
 import { AddCategoryModal } from "@/components/settings/add-category-modal";
 import { AddSupplierModal } from "@/components/settings/add-supplier-modal";
 import { CategoryTable } from "@/components/settings/category-table";
@@ -17,6 +17,8 @@ export default function Settings() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [supplierSearch, setSupplierSearch] = useState("");
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -183,42 +185,60 @@ export default function Settings() {
 
             {/* Categories Tab */}
             <TabsContent value="categories" className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-2 gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">Categories</h2>
-                  <p className="text-muted-foreground">
-                    Manage your inventory categories
-                  </p>
+                  <h2 className="text-2xl font-bold text-foreground">Categories Management</h2>
+                  <p className="text-muted-foreground">Manage your inventory categories</p>
                 </div>
-                <Button 
-                  onClick={() => setIsAddCategoryModalOpen(true)}
-                  data-testid="button-add-category"
-                >
-                  <Tag className="w-4 h-4 mr-2" />
-                  Add Category
-                </Button>
+                <div className="flex items-center gap-4 flex-1 max-w-md justify-end">
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    <input
+                      className="pl-10 h-10 w-full rounded-md border border-subtle bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      placeholder="Search categories..."
+                      value={categorySearch}
+                      onChange={(e) => setCategorySearch(e.target.value)}
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => setIsAddCategoryModalOpen(true)}
+                    data-testid="button-add-category"
+                  >
+                    <Tag className="w-4 h-4 mr-2" />
+                    Add Category
+                  </Button>
+                </div>
               </div>
-              <CategoryTable />
+              <CategoryTable searchQuery={categorySearch} />
             </TabsContent>
 
             {/* Suppliers Tab */}
             <TabsContent value="suppliers" className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-2 gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">Suppliers</h2>
-                  <p className="text-muted-foreground">
-                    Manage your suppliers and vendors
-                  </p>
+                  <h2 className="text-2xl font-bold text-foreground">Suppliers Management</h2>
+                  <p className="text-muted-foreground">Manage your suppliers and vendors</p>
                 </div>
-                <Button 
-                  onClick={() => setIsAddSupplierModalOpen(true)}
-                  data-testid="button-add-supplier"
-                >
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Add Supplier
-                </Button>
+                <div className="flex items-center gap-4 flex-1 max-w-md justify-end">
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    <input
+                      className="pl-10 h-10 w-full rounded-md border border-subtle bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      placeholder="Search suppliers..."
+                      value={supplierSearch}
+                      onChange={(e) => setSupplierSearch(e.target.value)}
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => setIsAddSupplierModalOpen(true)}
+                    data-testid="button-add-supplier"
+                  >
+                    <Building2 className="w-4 h-4 mr-2" />
+                    Add Supplier
+                  </Button>
+                </div>
               </div>
-              <SupplierTable />
+              <SupplierTable searchQuery={supplierSearch} />
             </TabsContent>
 
             {/* Account Tab */}
