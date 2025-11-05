@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { TopHeader } from "@/components/layout/top-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, TrendingUp, DollarSign, Package, CalendarDays } from "lucide-react";
@@ -39,11 +39,12 @@ export default function Reports() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Reports & Analytics" />
-        <div className="flex-1 overflow-auto p-6 animate-fade-in">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <TopHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto p-6 animate-fade-in">
+          <h2 className="text-2xl font-semibold text-foreground mb-6">Reports & Analytics</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Sales Report Card */}
             <Card className="hover-lift transition-all">
@@ -128,8 +129,8 @@ export default function Reports() {
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

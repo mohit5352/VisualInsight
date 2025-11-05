@@ -52,7 +52,7 @@ export function DateNavigation({ selectedDate, onDateChange }: DateNavigationPro
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2">
             <CalendarDays className="w-5 h-5" />
-            <span>Daily Diary</span>
+            <span>{getDateLabel(selectedDate)}</span>
           </CardTitle>
           <div className="flex items-center space-x-2">
             {/* Previous Day */}
@@ -110,15 +110,7 @@ export function DateNavigation({ selectedDate, onDateChange }: DateNavigationPro
             </Button>
           </div>
         </div>
-        {/* Date Label - helpful context */}
-        <div className="text-muted-foreground font-medium">
-          {getDateLabel(selectedDate)}
-        </div>
       </CardHeader>
-      <CardContent>
-        {/* Future: Quick date shortcuts could go here */}
-        {/* Example: "Last 7 days", "This week", "This month" buttons */}
-      </CardContent>
     </Card>
   );
 }

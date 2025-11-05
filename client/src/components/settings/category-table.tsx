@@ -117,7 +117,7 @@ export function CategoryTable() {
               {searchQuery ? "No categories found matching your search." : "No categories found. Add your first category to get started."}
             </div>
           ) : (
-            <div className="border border-border rounded-lg overflow-hidden">
+            <div className="rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>

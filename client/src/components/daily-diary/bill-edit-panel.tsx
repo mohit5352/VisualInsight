@@ -134,7 +134,7 @@ export function BillEditPanel({ bill, open, onClose }: BillEditPanelProps) {
       width="md"
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 h-full flex flex-col">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 h-full flex flex-col p-4">
           {/* Bill Summary Card */}
           <Card>
             <CardHeader>

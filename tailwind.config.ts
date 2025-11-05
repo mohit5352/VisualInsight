@@ -42,6 +42,7 @@ export default {
           foreground: "var(--destructive-foreground)",
         },
         border: "var(--border)",
+        "border-subtle": "hsl(var(--border) / 0.3)",
         input: "var(--input)",
         ring: "var(--ring)",
         chart: {
@@ -88,6 +89,17 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      boxShadow: {
+        "subtle": "var(--shadow-subtle)",
+        "sm": "var(--shadow-sm)",
+        "DEFAULT": "var(--shadow)",
+        "md": "var(--shadow-md)",
+        "lg": "var(--shadow-lg)",
+        "xl": "var(--shadow-xl)",
+        "2xl": "var(--shadow-2xl)",
+        "header": "var(--shadow-header)",
+        "sidebar": "var(--shadow-sidebar)",
       },
     },
   },

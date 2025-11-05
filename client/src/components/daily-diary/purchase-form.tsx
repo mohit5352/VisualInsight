@@ -16,6 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Plus, Trash2, Calculator } from "lucide-react";
 import type { Customer, InventoryItem } from "@shared/schema";
 import { CustomerSelector } from "./customer-selector";
@@ -309,104 +317,93 @@ export function PurchaseForm({
               Add Item
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             {billItems.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No items added yet. Click "Add Item" to get started.</p>
               </div>
             ) : (
-              billItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-12 gap-2 items-end p-4 border rounded-lg"
-                >
-                  <div className="col-span-12 sm:col-span-4">
-                    <Label>Inventory Item</Label>
-                    <Select
-                      value={item.inventoryItemId}
-                      onValueChange={(value) => {
-                        const selectedItem = inventoryItems?.find(
-                          (i) => i.id === value
-                        );
-                        updateBillItem(index, "inventoryItemId", value);
-                        if (selectedItem) {
-                          updateBillItem(index, "unitPrice", selectedItem.unitPrice);
-                        }
-                      }}
-                      disabled={createBillMutation.isPending}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select item" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {inventoryItems?.map((inventoryItem) => (
-                          <SelectItem
-                            key={inventoryItem.id}
-                            value={inventoryItem.id}
+              <div className="border border-border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item</TableHead>
+                      <TableHead className="w-24">Qty</TableHead>
+                      <TableHead className="w-32">Price</TableHead>
+                      <TableHead className="w-32">Total</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {billItems.map((item, index) => (
+                      <TableRow key={index} data-testid={`row-purchase-item-${index}`}>
+                        <TableCell>
+                          <Select
+                            value={item.inventoryItemId}
+                            onValueChange={(value) => {
+                              const selectedItem = inventoryItems?.find((i) => i.id === value);
+                              updateBillItem(index, "inventoryItemId", value);
+                              if (selectedItem) {
+                                updateBillItem(index, "unitPrice", selectedItem.unitPrice);
+                              }
+                            }}
+                            disabled={createBillMutation.isPending}
                           >
-                            {inventoryItem.name} - ${inventoryItem.unitPrice}{" "}
-                            (Stock: {inventoryItem.quantity})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-2">
-                    <Label>Quantity</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        updateBillItem(
-                          index,
-                          "quantity",
-                          parseInt(e.target.value) || 1
-                        )
-                      }
-                      placeholder="1"
-                      disabled={createBillMutation.isPending}
-                    />
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-2">
-                    <Label>Unit Price</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={item.unitPrice}
-                      onChange={(e) =>
-                        updateBillItem(index, "unitPrice", e.target.value)
-                      }
-                      placeholder="0.00"
-                      disabled={createBillMutation.isPending}
-                    />
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-2">
-                    <Label>Total</Label>
-                    <div className="flex items-center h-10 px-3 py-2 border border-input bg-background text-sm rounded-md">
-                      ${parseFloat(item.total || "0").toFixed(2)}
-                    </div>
-                  </div>
-
-                  <div className="col-span-6 sm:col-span-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeBillItem(index)}
-                      className="w-full"
-                      disabled={createBillMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select item" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {inventoryItems?.map((inventoryItem) => (
+                                <SelectItem key={inventoryItem.id} value={inventoryItem.id}>
+                                  {inventoryItem.name} (Stock: {inventoryItem.quantity})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              updateBillItem(index, "quantity", parseInt(e.target.value) || 1)
+                            }
+                            placeholder="1"
+                            disabled={createBillMutation.isPending}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.unitPrice}
+                            onChange={(e) => updateBillItem(index, "unitPrice", e.target.value)}
+                            placeholder="0.00"
+                            disabled={createBillMutation.isPending}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          ${parseFloat(item.total || "0").toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeBillItem(index)}
+                            disabled={createBillMutation.isPending}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { TopHeader } from "@/components/layout/top-header";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { LowStockAlerts } from "@/components/dashboard/low-stock-alerts";
@@ -39,12 +39,14 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Dashboard" />
-        <div className="flex-1 overflow-auto p-6 space-y-6 animate-fade-in">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <TopHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto p-6 space-y-6 animate-fade-in">
+          <h2 className="text-2xl font-semibold text-foreground">Dashboard</h2>
           <StatsCards />
+          <QuickActions />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <RecentTransactions />
@@ -53,9 +55,8 @@ export default function Home() {
               <LowStockAlerts />
             </div>
           </div>
-          <QuickActions />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

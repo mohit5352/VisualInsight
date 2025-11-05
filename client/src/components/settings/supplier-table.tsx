@@ -118,7 +118,7 @@ export function SupplierTable() {
               {searchQuery ? "No suppliers found matching your search." : "No suppliers found. Add your first supplier to get started."}
             </div>
           ) : (
-            <div className="border border-border rounded-lg overflow-hidden">
+            <div className="rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>

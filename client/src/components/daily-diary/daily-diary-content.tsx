@@ -4,9 +4,13 @@ import { SummaryCards } from "./summary-cards";
 import { TransactionTimeline } from "./transaction-timeline";
 import { PurchaseForm } from "./purchase-form";
 import { CustomerPanel } from "./customer-panel";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import type { Customer } from "@shared/schema";
+
+interface DailyDiaryContentProps {
+  isPurchaseFormOpen?: boolean;
+  onPurchaseFormClose?: () => void;
+  onPurchaseFormOpen?: () => void;
+}
 
 /**
  * Main content component for Daily Diary page
@@ -21,12 +25,27 @@ import type { Customer } from "@shared/schema";
  * - Filter/search state management
  * - Customer panel state management
  */
-export function DailyDiaryContent() {
+export function DailyDiaryContent({ 
+  isPurchaseFormOpen: externalIsOpen, 
+  onPurchaseFormClose,
+  onPurchaseFormOpen
+}: DailyDiaryContentProps = {}) {
   // Date state - can be extended to sync with URL params
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
-  // Purchase form state
-  const [isPurchaseFormOpen, setIsPurchaseFormOpen] = useState(false);
+  // Purchase form state - use external if provided, otherwise internal
+  const [internalPurchaseFormOpen, setInternalPurchaseFormOpen] = useState(false);
+  const isPurchaseFormOpen = externalIsOpen !== undefined ? externalIsOpen : internalPurchaseFormOpen;
+  const setIsPurchaseFormOpen = onPurchaseFormOpen || onPurchaseFormClose 
+    ? (open: boolean) => {
+        if (open) {
+          onPurchaseFormOpen?.();
+        } else {
+          onPurchaseFormClose?.();
+        }
+      }
+    : setInternalPurchaseFormOpen;
+  
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   
   // Customer panel state
@@ -46,18 +65,6 @@ export function DailyDiaryContent() {
 
       {/* Transaction Timeline - main content area */}
       <TransactionTimeline selectedDate={selectedDate} />
-
-      {/* Floating Action Button - New Purchase */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <Button
-          size="lg"
-          className="rounded-full shadow-lg hover:shadow-xl transition-shadow h-14 w-14"
-          onClick={() => setIsPurchaseFormOpen(true)}
-          aria-label="New Purchase"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </div>
 
       {/* Purchase Form - Bottom Sheet */}
       <PurchaseForm

@@ -2,18 +2,20 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { TopHeader } from "@/components/layout/top-header";
 import { InventoryTable } from "@/components/inventory/inventory-table";
 import { AddInventoryModal } from "@/components/inventory/add-inventory-modal";
 import { EditInventoryModal } from "@/components/inventory/edit-inventory-modal";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Search } from "lucide-react";
 
 export default function Inventory() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -42,26 +44,37 @@ export default function Inventory() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <Header 
-          title="Inventory Management" 
-          action={
-            <Button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="hover-lift"
-              data-testid="button-add-inventory"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Item
-            </Button>
-          }
-        />
-        <div className="flex-1 overflow-auto p-6 animate-fade-in">
-          <InventoryTable onEditItem={setEditingItemId} />
-        </div>
-      </main>
+    <div className="flex flex-col h-screen overflow-hidden">
+      <TopHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto p-6 animate-fade-in">
+          <div className="flex items-center justify-between mb-6 gap-4">
+            <h2 className="text-2xl font-semibold text-foreground">Inventory Management</h2>
+            <div className="flex items-center gap-4 flex-1 max-w-md justify-end">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search items, categories, suppliers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-search-inventory"
+                />
+              </div>
+              <Button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="hover-lift"
+                data-testid="button-add-inventory"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Item
+              </Button>
+            </div>
+          </div>
+          <InventoryTable onEditItem={setEditingItemId} searchQuery={searchQuery} />
+        </main>
+      </div>
       <AddInventoryModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}

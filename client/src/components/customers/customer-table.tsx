@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Users, Edit, Trash2, Mail, Phone } from "lucide-react";
+import { Users, Edit, Trash2, Mail, Phone } from "lucide-react";
 import type { CustomerWithStats } from "@shared/schema";
 import { format } from "date-fns";
 import { PurchaseHistoryModal } from "./purchase-history-modal";
@@ -24,12 +23,12 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 interface CustomerTableProps {
   onEditCustomer?: (customerId: string) => void;
+  searchQuery?: string;
 }
 
-export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
+export function CustomerTable({ onEditCustomer, searchQuery = "" }: CustomerTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithStats | null>(null);
   const [purchaseHistoryOpen, setPurchaseHistoryOpen] = useState(false);
 
@@ -117,18 +116,6 @@ export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
           <span>Customers</span>
           <Badge variant="secondary">{customers?.length || 0}</Badge>
         </CardTitle>
-        
-        {/* Search Bar */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search customers..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            data-testid="input-search-customers"
-          />
-        </div>
       </CardHeader>
       <CardContent>
         {filteredCustomers.length > 0 ? (
@@ -136,7 +123,7 @@ export function CustomerTable({ onEditCustomer }: CustomerTableProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer (Click name for history)</TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Total Orders</TableHead>

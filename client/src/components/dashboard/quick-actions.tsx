@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Plus, UserPlus, FileText, BarChart3 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, UserPlus, FileText, BarChart3, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 
 export function QuickActions() {
@@ -46,21 +46,24 @@ export function QuickActions() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {actions.map((action, index) => (
         <Link key={index} href={action.href}>
-          <Button
-            variant="ghost"
-            className="p-6 h-auto text-left hover:bg-muted/50 hover-lift transition-all w-full"
-            data-testid={action.testId}
-          >
-            <div className="flex items-center space-x-3 w-full">
-              <div className={`w-10 h-10 ${action.bgColor} rounded-lg flex items-center justify-center`}>
-                <action.icon className={`${action.iconColor} w-5 h-5`} />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-foreground">{action.title}</p>
-                <p className="text-sm text-muted-foreground">{action.description}</p>
-              </div>
-            </div>
-          </Button>
+          <a data-testid={action.testId} className="block">
+            <Card className="hover-lift transition-all cursor-pointer">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 ${action.bgColor} rounded-lg flex items-center justify-center`}>
+                      <action.icon className={`${action.iconColor} w-5 h-5`} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{action.title}</p>
+                      <p className="text-sm text-muted-foreground">{action.description}</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          </a>
         </Link>
       ))}
     </div>

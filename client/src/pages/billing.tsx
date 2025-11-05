@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { TopHeader } from "@/components/layout/top-header";
 import { BillModal } from "@/components/billing/bill-modal";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BillStatusBadge } from "@/components/ui/bill-status-badge";
-import { FileText, Plus } from "lucide-react";
+import { FileText, Plus, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { BillWithRelations } from "@shared/schema";
 import { format } from "date-fns";
@@ -20,12 +21,25 @@ export default function Billing() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: bills, isLoading: billsLoading } = useQuery<BillWithRelations[]>({
     queryKey: ["/api/bills"],
     enabled: isAuthenticated,
   });
 
+  const filteredBills = useMemo(() => {
+    if (!bills) return [];
+    if (!searchQuery.trim()) return bills;
+    
+    const query = searchQuery.toLowerCase();
+    return bills.filter(bill =>
+      bill.billNumber.toLowerCase().includes(query) ||
+      bill.customer.name.toLowerCase().includes(query) ||
+      bill.total.toLowerCase().includes(query) ||
+      (bill.status && bill.status.toLowerCase().includes(query))
+    );
+  }, [bills, searchQuery]);
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
@@ -55,23 +69,34 @@ export default function Billing() {
   // centralized badge now used via BillStatusBadge
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <Header 
-          title="Billing & Invoices" 
-          action={
-            <Button 
-              onClick={() => setIsBillModalOpen(true)}
-              className="hover-lift"
-              data-testid="button-generate-bill"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Generate Bill
-            </Button>
-          }
-        />
-        <div className="flex-1 overflow-auto p-6 animate-fade-in">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <TopHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto p-6 animate-fade-in">
+          <div className="flex items-center justify-between mb-6 gap-4">
+            <h2 className="text-2xl font-semibold text-foreground">Billing & Invoices</h2>
+            <div className="flex items-center gap-4 flex-1 max-w-md justify-end">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search bills, customers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-search-billing"
+                />
+              </div>
+              <Button 
+                onClick={() => setIsBillModalOpen(true)}
+                className="hover-lift"
+                data-testid="button-generate-bill"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Generate Bill
+              </Button>
+            </div>
+          </div>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -85,7 +110,7 @@ export default function Billing() {
                   <SectionHeaderSkeleton withBadge={false} />
                   <TableSkeleton rows={8} cols={6} />
                 </>
-              ) : bills && bills.length > 0 ? (
+              ) : filteredBills && filteredBills.length > 0 ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -99,7 +124,7 @@ export default function Billing() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {bills.map((bill) => (
+                      {filteredBills.map((bill) => (
                         <TableRow key={bill.id} data-testid={`row-bill-${bill.id}`}>
                           <TableCell className="font-medium" data-testid={`text-bill-number-${bill.id}`}>
                             {bill.billNumber}
@@ -127,21 +152,30 @@ export default function Billing() {
               ) : (
                 <div className="text-center py-12">
                   <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No bills generated yet</h3>
-                  <p className="text-muted-foreground mb-4">Start by creating your first invoice</p>
-                  <Button 
-                    onClick={() => setIsBillModalOpen(true)}
-                    data-testid="button-generate-first-bill"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Generate First Bill
-                  </Button>
+                  <h3 className="text-lg font-medium text-foreground mb-2">
+                    {searchQuery ? "No bills found" : "No bills generated yet"}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    {searchQuery 
+                      ? "Try adjusting your search terms"
+                      : "Start by creating your first invoice"
+                    }
+                  </p>
+                  {!searchQuery && (
+                    <Button 
+                      onClick={() => setIsBillModalOpen(true)}
+                      data-testid="button-generate-first-bill"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Generate First Bill
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>
           </Card>
-        </div>
-      </main>
+        </main>
+      </div>
       <BillModal 
         isOpen={isBillModalOpen} 
         onClose={() => setIsBillModalOpen(false)} 

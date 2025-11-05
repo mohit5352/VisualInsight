@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { TopHeader } from "@/components/layout/top-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -80,11 +80,12 @@ export default function Settings() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Settings" />
-        <div className="flex-1 overflow-auto p-6 animate-fade-in">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <TopHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto p-6 animate-fade-in">
+          <h2 className="text-2xl font-semibold text-foreground mb-6">Settings</h2>
           <Tabs defaultValue="profile" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile" className="flex items-center space-x-2">
@@ -259,8 +260,8 @@ export default function Settings() {
             isOpen={isAddSupplierModalOpen} 
             onClose={() => setIsAddSupplierModalOpen(false)} 
           />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SidePanel } from "@/components/ui/side-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,14 @@ export function CustomerPanel({
     customer || null
   );
 
+  // Sync active tab with external mode when it changes or when panel opens
+  useEffect(() => {
+    const desired = mode === "create" ? "create" : mode === "edit" ? "edit" : "list";
+    if (open && activeTab !== desired) {
+      setActiveTab(desired);
+    }
+  }, [mode, open]);
+
   const handleCustomerCreated = (newCustomer: Customer) => {
     onCustomerCreated?.(newCustomer);
     // Switch to list view after creation
@@ -65,9 +73,12 @@ export function CustomerPanel({
   };
 
   const getTitle = () => {
-    if (mode === "create" || activeTab === "create") return "Create Customer";
-    if (mode === "edit" || activeTab === "edit") return "Edit Customer";
+    // If panel is used in select mode, prefer a persistent "Select" title
     if (mode === "select") return "Select Customer";
+
+    // Otherwise, reflect the currently active tab
+    if (activeTab === "create") return "Create Customer";
+    if (activeTab === "edit") return "Edit Customer";
     return "Customers";
   };
 
@@ -99,7 +110,7 @@ export function CustomerPanel({
         </div>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-          <TabsContent value="list" className="m-0 h-full overflow-hidden">
+          <TabsContent value="list" className="m-0 h-full overflow-auto">
             <CustomerList
               onEditCustomer={handleEditCustomer}
               onSelectCustomer={mode === "select" ? handleSelectCustomer : undefined}

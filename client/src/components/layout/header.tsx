@@ -14,7 +14,7 @@ export function Header({ title, action }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
+    <header className="h-16 bg-card shadow-header flex items-center justify-between px-6">
       <div className="flex items-center space-x-4">
         <Button
           variant="ghost"

@@ -69,88 +69,80 @@ export function CustomerSelector({
   return (
     <div className="space-y-2">
       <Label htmlFor="customer-select">Customer *</Label>
-      <div className="space-y-2">
-        {/* Search Input - appears when dropdown is open or as separate field */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <Input
-            id="customer-search"
-            placeholder="Search customers..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            disabled={disabled}
-          />
+      {/* Single compact field (search + select + create in row) */}
+      <div className="flex flex-col sm:flex-row sm:items-end gap-2">
+        {/* Combined Search + Select */}
+        <div className="w-full sm:max-w-[420px]">
+          <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+            <SelectTrigger id="customer-select" className="w-full h-10">
+              <SelectValue placeholder="Search or select customer" />
+            </SelectTrigger>
+            <SelectContent>
+              {/* Inline control row */}
+              <div className="sticky top-0 z-10 bg-popover p-2 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      autoFocus
+                      id="customer-search"
+                      placeholder="Search customers..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 h-9"
+                      disabled={disabled}
+                    />
+                  </div>
+                  {onCreateNew && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onCreateNew();
+                      }}
+                      className="h-9 whitespace-nowrap"
+                      disabled={disabled}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Create
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Loading State */}
+              {isLoading && (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  Loading customers...
+                </div>
+              )}
+
+              {/* Customer List */}
+              {!isLoading && filteredCustomers && filteredCustomers.length > 0 ? (
+                filteredCustomers.map((customer) => (
+                  <SelectItem key={customer.id} value={customer.id}>
+                    <div className="flex flex-row gap-2 items-center">
+                      <span className="font-medium">{customer.name}</span>
+                      {(customer.email || customer.phone) && (
+                        <span className="text-xs text-muted-foreground">
+                          ({customer.email || customer.phone})
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))
+              ) : !isLoading && (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  {searchQuery ? "No customers found" : "No customers available"}
+                </div>
+              )}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Customer Select Dropdown */}
-        <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-          <SelectTrigger id="customer-select">
-            <SelectValue placeholder="Select customer or create new" />
-          </SelectTrigger>
-          <SelectContent>
-            {/* Create New Customer Option */}
-            {onCreateNew && (
-              <div className="border-b border-border p-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onCreateNew();
-                  }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New Customer
-                </Button>
-              </div>
-            )}
-
-            {/* Loading State */}
-            {isLoading && (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                Loading customers...
-              </div>
-            )}
-
-            {/* Customer List */}
-            {!isLoading && filteredCustomers && filteredCustomers.length > 0 ? (
-              filteredCustomers.map((customer) => (
-                <SelectItem key={customer.id} value={customer.id}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{customer.name}</span>
-                    {(customer.email || customer.phone) && (
-                      <span className="text-xs text-muted-foreground">
-                        {customer.email || customer.phone}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))
-            ) : !isLoading && (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                {searchQuery ? "No customers found" : "No customers available"}
-              </div>
-            )}
-          </SelectContent>
-        </Select>
-
-        {/* Quick Create Button (Alternative) */}
-        {onCreateNew && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onCreateNew}
-            className="w-full"
-            disabled={disabled}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create New Customer
-          </Button>
-        )}
+        {/* No external button to keep a single-field design */}
       </div>
     </div>
   );

@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,19 +14,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Package, Edit, Trash2, AlertTriangle } from "lucide-react";
+import { Package, Edit, Trash2, AlertTriangle } from "lucide-react";
 import type { InventoryItemWithRelations } from "@shared/schema";
 import { SectionHeaderSkeleton } from "@/components/ui/section-header-skeleton";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 interface InventoryTableProps {
   onEditItem?: (itemId: string) => void;
+  searchQuery?: string;
 }
 
-export function InventoryTable({ onEditItem }: InventoryTableProps) {
+export function InventoryTable({ onEditItem, searchQuery = "" }: InventoryTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: items, isLoading } = useQuery<InventoryItemWithRelations[]>({
     queryKey: ["/api/inventory"],
@@ -103,18 +102,6 @@ export function InventoryTable({ onEditItem }: InventoryTableProps) {
           <span>Inventory Items</span>
           <Badge variant="secondary">{items?.length || 0}</Badge>
         </CardTitle>
-        
-        {/* Search Bar */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search items, categories, suppliers..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            data-testid="input-search-inventory"
-          />
-        </div>
       </CardHeader>
       <CardContent>
         {filteredItems.length > 0 ? (
