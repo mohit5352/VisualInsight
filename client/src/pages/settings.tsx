@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { TopHeader } from "@/components/layout/top-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings as SettingsIcon, User, Bell, Shield, LogOut, Tag, Building2, Search } from "lucide-react";
 import { AddCategoryModal } from "@/components/settings/add-category-modal";
@@ -192,12 +193,12 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center gap-4 flex-1 max-w-md justify-end">
                   <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <input
-                      className="pl-10 h-10 w-full rounded-md border border-subtle bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-10" />
+                    <Input
                       placeholder="Search categories..."
                       value={categorySearch}
                       onChange={(e) => setCategorySearch(e.target.value)}
+                      className="pl-10"
                     />
                   </div>
                   <Button 
@@ -221,12 +222,12 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center gap-4 flex-1 max-w-md justify-end">
                   <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <input
-                      className="pl-10 h-10 w-full rounded-md border border-subtle bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-10" />
+                    <Input
                       placeholder="Search suppliers..."
                       value={supplierSearch}
                       onChange={(e) => setSupplierSearch(e.target.value)}
+                      className="pl-10"
                     />
                   </div>
                   <Button 

@@ -52,6 +52,7 @@ export default {
         },
         border: "var(--border)",
         "border-subtle": "hsl(var(--border) / 0.3)",
+        "border-input": "var(--input-border)",
         input: "var(--input)",
         ring: "var(--ring)",
         chart: {
